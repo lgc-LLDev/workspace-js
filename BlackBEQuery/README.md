@@ -14,7 +14,7 @@ BlackBE 站长：NyanCatda [云黑官网](https://blackbe.xyz) [赞助云黑](ht
 
 _注：LLSE 暂不支持 GET 请求带 Headers，所以暂不实现查询私有库._
 
-使用方法：`/blackbe [XboxID/QQ号/XUID]`
+使用方法：`/blackbe [XboxID/QQ号/XUID]` ，如不带参数则打开输入查询内容表单
 
 ## 图骗欣赏
 
@@ -30,3 +30,6 @@ _注：LLSE 暂不支持 GET 请求带 Headers，所以暂不实现查询私有�
 
 - 2022.2.17
   - First Release
+- 2022.2.18
+  - Reformatted code
+  - Some little changes
