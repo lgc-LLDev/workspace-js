@@ -1,6 +1,6 @@
 # BlackBEQuery
 
-Version: 1.0.0
+Version: 1.0.1
 
 Author: [student_2333](https://github.com/lgc2333)
 

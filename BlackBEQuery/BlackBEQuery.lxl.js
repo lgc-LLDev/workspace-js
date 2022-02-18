@@ -4,7 +4,7 @@
 plInfo = {
     name: 'BlackBEQuery',
     description: '在游戏内查询BlackBE违规记录',
-    version: { major: 1, minor: 0, revision: 0 },
+    version: { major: 1, minor: 0, revision: 1 },
     other: { author: 'student_2333', license: 'Apache-2.0' },
 };
 ll.registerPlugin(
