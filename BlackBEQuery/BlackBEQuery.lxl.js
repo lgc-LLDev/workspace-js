@@ -51,7 +51,7 @@ function parseAPIReturn(data) {
  * 格式化返回数据，返回结果文本
  * @param {object} retJson
  */
-function parseResult(retJson) {
+function parseResult(query, retJson) {
     if (retJson.success) {
         if (retJson.data.exist) {
             li = retJson.data.info;
@@ -87,7 +87,7 @@ function formResult(pl, query) {
         (_, ret) => {
             try {
                 retJson = JSON.parse(ret);
-                content = parseResult(retJson);
+                content = parseResult(query, retJson);
             } catch (e) {
                 content = `§4格式化返回Json时出错！\n${e.stack}`;
             }
