@@ -1,6 +1,6 @@
 # BlackBEQuery
 
-Version: 1.0.1
+Version: 1.0.2
 
 Author: [student_2333](https://github.com/lgc2333)
 
@@ -12,7 +12,7 @@ BlackBE 站长：NyanCatda [云黑官网](https://blackbe.xyz) [赞助云黑](ht
 
 本插件是本人写的[BlackBE](https://github.com/lgc2333/BDSPyRunnerPlugins/tree/main/BlackBE)插件的查询功能在 LLSE 的复刻，可以实现在服务器内查询公有库~~或你的私有库~~的违规记录
 
-_注：LLSE 暂不支持 GET 请求带 Headers，所以暂不实现查询私有库._
+_注：LLSE 暂不支持 GET 请求带 Headers，因安全性考虑，暂不实现查询私有库._
 
 使用方法：`/blackbe [XboxID/QQ号/XUID]` ，如不带参数则打开输入查询内容表单
 
@@ -29,7 +29,10 @@ _注：LLSE 暂不支持 GET 请求带 Headers，所以暂不实现查询私有�
 ## 更新日志
 
 - 2022.2.17
-  - First Release
+  - 首次发布
 - 2022.2.18
-  - Reformatted code
-  - Some little changes
+  - 重新格式化代码
+  - 一些小修改
+- 2022.2.25
+  - 引入ESLint规范代码（以前Python写多了现在变量老忘声明，这波属于ESLint直接教我做人）
+  - 修改了插件加载时输出Log的代码（Object.prototype没有entries函数……我学的假ES6？）

@@ -1,17 +1,22 @@
-//LiteXLoader Dev Helper
+/* eslint-disable no-restricted-syntax */
+
+// LiteXLoader Dev Helper
+// eslint-disable-next-line max-len
 /// <reference path="c:\Users\Administrator\.vscode\extensions\moxicat.llscripthelper-1.0.1\lib/Library/JS/Api.js" />
 
-plInfo = {
-    name: 'BlackBEQuery',
-    description: '在游戏内查询BlackBE违规记录',
-    version: { major: 1, minor: 0, revision: 1 },
-    other: { author: 'student_2333', license: 'Apache-2.0' },
+const plInfo = {
+  name: 'BlackBEQuery',
+  description: '在游戏内查询BlackBE违规记录',
+  version: { major: 1, minor: 0, revision: 2 },
+  other: { author: 'student_2333', license: 'Apache-2.0' },
 };
+
+// eslint-disable-next-line no-undef
 ll.registerPlugin(
-    plInfo.name,
-    plInfo.description,
-    plInfo.version,
-    plInfo.other
+  plInfo.name,
+  plInfo.description,
+  plInfo.version,
+  plInfo.other
 );
 
 /**
@@ -19,32 +24,34 @@ ll.registerPlugin(
  * @param {Object} data
  */
 function parseAPIReturn(data) {
-    switch (data.level) {
-        case 1:
-            lvl = '有作弊行为，但未对其他玩家造成实质上损害';
-            color = 'e';
-            break;
-        case 2:
-            lvl = '有作弊行为，且对玩家造成一定的损害';
-            color = '6';
-            break;
-        case 3:
-            lvl = '严重破坏服务器，对玩家和服务器造成较大的损害';
-            color = 'c';
-            break;
-        default:
-            lvl = '未知';
-            color = 'r';
-            break;
-    }
-    return (
-        `§2玩家ID§r：§l§d${data.name}§r\n` +
-        `§2危险等级§r：§${color}等级 §l${data.level} §r§${color}（${lvl}）\n` +
-        `§2记录原因§r：§b${data.info}\n` +
-        `§2XUID§r：§b${data.xuid}\n` +
-        `§2玩家QQ§r：§b${data.qq}\n` +
-        `§2记录UUID§r：§b${data.uuid}`
-    );
+  let lvl;
+  let color;
+  switch (data.level) {
+    case 1:
+      lvl = '有作弊行为，但未对其他玩家造成实质上损害';
+      color = 'e';
+      break;
+    case 2:
+      lvl = '有作弊行为，且对玩家造成一定的损害';
+      color = '6';
+      break;
+    case 3:
+      lvl = '严重破坏服务器，对玩家和服务器造成较大的损害';
+      color = 'c';
+      break;
+    default:
+      lvl = '未知';
+      color = 'r';
+      break;
+  }
+  return (
+    `§2玩家ID§r：§l§d${data.name}§r\n` +
+    `§2危险等级§r：§${color}等级 §l${data.level} §r§${color}（${lvl}）\n` +
+    `§2记录原因§r：§b${data.info}\n` +
+    `§2XUID§r：§b${data.xuid}\n` +
+    `§2玩家QQ§r：§b${data.qq}\n` +
+    `§2记录UUID§r：§b${data.uuid}`
+  );
 }
 
 /**
@@ -52,25 +59,26 @@ function parseAPIReturn(data) {
  * @param {object} retJson
  */
 function parseResult(query, retJson) {
-    if (retJson.success) {
-        if (retJson.data.exist) {
-            li = retJson.data.info;
-            tmpLi = [
-                `§a为您查询到关于 §l§2${query} §r§a的 §l§e${li.length} §r§a条相关记录：`,
-            ];
-            li.forEach((i) => {
-                tmpLi.push('§r-=-=-=-=-=-=-=-=-=-=-=-=-=-', parseAPIReturn(i));
-            });
-            content = tmpLi.join('\n');
-        } else {
-            content =
-                `§a未查询到 §l§b${query} §r§a的记录§r：` +
-                `[§6${retJson.status}§r] §d${retJson.message}`;
-        }
+  let content;
+  if (retJson.success) {
+    if (retJson.data.exist) {
+      const li = retJson.data.info;
+      const tmpLi = [
+        `§a为您查询到关于 §l§2${query} §r§a的 §l§e${li.length} §r§a条相关记录：`,
+      ];
+      li.forEach((i) => {
+        tmpLi.push('§r-=-=-=-=-=-=-=-=-=-=-=-=-=-', parseAPIReturn(i));
+      });
+      content = tmpLi.join('\n');
     } else {
-        content = `§a查询失败§r：[§6${retJson.status}§r] §d${retJson.message}`;
+      content =
+        `§a未查询到 §l§b${query} §r§a的记录§r：` +
+        `[§6${retJson.status}§r] §d${retJson.message}`;
     }
-    return content;
+  } else {
+    content = `§a查询失败§r：[§6${retJson.status}§r] §d${retJson.message}`;
+  }
+  return content;
 }
 
 /**
@@ -78,65 +86,93 @@ function parseResult(query, retJson) {
  * @param {Player} pl 玩家
  * @param {string} query 查询内容
  */
-function formResult(pl, query) {
-    query = query.trim();
-    encodedQuery = encodeURIComponent(query);
-    network.httpGet(
-        'https://api.blackbe.xyz/openapi/v3/check/' +
-            `?name=${encodedQuery}&qq=${encodedQuery}&xuid=${encodedQuery}`,
-        (_, ret) => {
-            try {
-                retJson = JSON.parse(ret);
-                content = parseResult(query, retJson);
-            } catch (e) {
-                content = `§4格式化返回Json时出错！\n${e.stack}`;
-            }
-            pl.sendForm(
-                mc
-                    .newCustomForm()
-                    .setTitle('§bBlackBEQuery§r - §aResult')
-                    .addLabel(content),
-                () => undefined
-            );
-        }
-    );
+function formResult(pl, rawQuery) {
+  let content;
+  const query = rawQuery.trim();
+  const encodedQuery = encodeURIComponent(query);
+  // eslint-disable-next-line no-undef
+  network.httpGet(
+    'https://api.blackbe.xyz/openapi/v3/check/' +
+      `?name=${encodedQuery}&qq=${encodedQuery}&xuid=${encodedQuery}`,
+    (_, ret) => {
+      try {
+        const retJson = JSON.parse(ret);
+        content = parseResult(query, retJson);
+      } catch (e) {
+        content = `§4格式化返回Json时出错！\n${e.stack}`;
+      }
+      pl.sendForm(
+        // eslint-disable-next-line no-undef
+        mc
+          .newCustomForm()
+          .setTitle('§bBlackBEQuery§r - §aResult')
+          .addLabel(content),
+        () => undefined
+      );
+    }
+  );
 }
 
 /**
  * 发送查询输入表单
  * @param {Player} pl
  */
-function formQuery(pl) {
-    pl.sendForm(
-        mc
-            .newCustomForm()
-            .setTitle('§bBlackBEQuery§r - §aInput')
-            .addLabel('§a请输入查询内容')
-            .addLabel(
-                '§6请谨慎使用XUID查询：由于历史遗留和XUID采集本身存在难度，' +
-                    '导致大部分条目没有记录XUID，所以不推荐依赖XUID来判断玩家是否存在于黑名单'
-            )
-            .addInput('', 'XboxID/QQ号/XUID'),
-        (pl, ret) => {
-            if (ret[2]) {
-                formResult(pl, ret[2]);
-            } else {
-                pl.sendText('§c请输入查询内容');
-            }
-        }
-    );
+function formQuery(player) {
+  player.sendForm(
+    // eslint-disable-next-line no-undef
+    mc
+      .newCustomForm()
+      .setTitle('§bBlackBEQuery§r - §aInput')
+      .addLabel('§a请输入查询内容')
+      .addLabel(
+        '§6请谨慎使用XUID查询：由于历史遗留和XUID采集本身存在难度，' +
+          '导致大部分条目没有记录XUID，所以不推荐依赖XUID来判断玩家是否存在于黑名单'
+      )
+      .addInput('', 'XboxID/QQ号/XUID'),
+    (pl, ret) => {
+      if (ret[2]) {
+        formResult(pl, ret[2]);
+      } else {
+        pl.sendText('§c请输入查询内容');
+      }
+    }
+  );
 }
 
+// eslint-disable-next-line no-undef
 mc.regPlayerCmd('blackbe', '查询BlackBE违规记录', (pl, args) => {
-    if (args[0]) {
-        formResult(pl, args.join(' '));
-    } else {
-        formQuery(pl);
-    }
+  if (args[0]) {
+    formResult(pl, args.join(' '));
+  } else {
+    formQuery(pl);
+  }
 });
 
-log(
-    'Load Successfully, Version: ' +
-        `${plInfo.version.major}.${plInfo.version.minor}.${plInfo.version.revision}, ` +
-        `Author: ${plInfo.other.author}`
-);
+(() => {
+  const tmpLi = [];
+
+  for (const i in plInfo.version) {
+    if (Object.prototype.hasOwnProperty.call(plInfo.version, i)) {
+      tmpLi.push(plInfo.version[i]);
+    }
+  }
+  const versionStr = tmpLi.join('.');
+
+  tmpLi.length = 0;
+  for (const i in plInfo.other) {
+    if (plInfo.other.hasOwnProperty.call(plInfo.other, i)) {
+      let name = [...i];
+      name[0] = name[0].toUpperCase();
+      name = name.join('');
+      tmpLi.push(`${name}: ${plInfo.other[i]}`);
+    }
+  }
+
+  const othersStr = tmpLi.join(', ');
+
+  // eslint-disable-next-line no-undef
+  colorLog(
+    'green',
+    `Plugin loaded successfully, Version: ${versionStr}, ${othersStr}`
+  );
+})();
