@@ -1,3 +1,4 @@
+/* eslint-disable guard-for-in */
 /* eslint-disable no-restricted-syntax */
 
 // LiteXLoader Dev Helper
@@ -150,22 +151,16 @@ mc.regPlayerCmd('blackbe', '查询BlackBE违规记录', (pl, args) => {
 
 (() => {
   const tmpLi = [];
-
   for (const i in plInfo.version) {
-    if (Object.prototype.hasOwnProperty.call(plInfo.version, i)) {
-      tmpLi.push(plInfo.version[i]);
-    }
+    tmpLi.push(plInfo.version[i]);
   }
   const versionStr = tmpLi.join('.');
 
   tmpLi.length = 0;
   for (const i in plInfo.other) {
-    if (plInfo.other.hasOwnProperty.call(plInfo.other, i)) {
-      let name = [...i];
-      name[0] = name[0].toUpperCase();
-      name = name.join('');
-      tmpLi.push(`${name}: ${plInfo.other[i]}`);
-    }
+    const [first, ...other] = [...i];
+    const name = `${first.toUpperCase()}${other.join()}`;
+    tmpLi.push(`${name}: ${plInfo.other[i]}`);
   }
 
   const othersStr = tmpLi.join(', ');
