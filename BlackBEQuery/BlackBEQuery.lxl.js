@@ -1,5 +1,4 @@
-/* eslint-disable guard-for-in */
-/* eslint-disable no-restricted-syntax */
+/* global ll mc */
 
 // LiteXLoader Dev Helper
 // eslint-disable-next-line max-len
@@ -8,17 +7,9 @@
 const plInfo = {
   name: 'BlackBEQuery',
   description: '在游戏内查询BlackBE违规记录',
-  version: { major: 1, minor: 0, revision: 2 },
+  version: { major: 1, minor: 0, revision: 3 },
   other: { author: 'student_2333', license: 'Apache-2.0' },
 };
-
-// eslint-disable-next-line no-undef
-ll.registerPlugin(
-  plInfo.name,
-  plInfo.description,
-  plInfo.version,
-  plInfo.other
-);
 
 /**
  * 格式化API返回值
@@ -140,7 +131,6 @@ function formQuery(player) {
   );
 }
 
-// eslint-disable-next-line no-undef
 mc.regPlayerCmd('blackbe', '查询BlackBE违规记录', (pl, args) => {
   if (args[0]) {
     formResult(pl, args.join(' '));
@@ -150,24 +140,6 @@ mc.regPlayerCmd('blackbe', '查询BlackBE违规记录', (pl, args) => {
 });
 
 (() => {
-  const tmpLi = [];
-  for (const i in plInfo.version) {
-    tmpLi.push(plInfo.version[i]);
-  }
-  const versionStr = tmpLi.join('.');
-
-  tmpLi.length = 0;
-  for (const i in plInfo.other) {
-    const [first, ...other] = [...i];
-    const name = `${first.toUpperCase()}${other.join()}`;
-    tmpLi.push(`${name}: ${plInfo.other[i]}`);
-  }
-
-  const othersStr = tmpLi.join(', ');
-
-  // eslint-disable-next-line no-undef
-  colorLog(
-    'green',
-    `Plugin loaded successfully, Version: ${versionStr}, ${othersStr}`
-  );
+  const { name, description, version, other } = plInfo;
+  ll.registerPlugin(name, description, version, other);
 })();
