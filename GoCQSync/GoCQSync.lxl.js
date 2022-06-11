@@ -310,7 +310,7 @@ function wsOnText(msg) {
 
   // 其他事件处理
   const enableGroups = config.get('enable_groups');
-  if (enableGroups.includes(groupId.toString())) {
+  if (groupId !== undefined && enableGroups.includes(groupId.toString())) {
     if (
       (postType === 'message' || postType === 'message_sent') &&
       messageType === 'group' &&
@@ -415,7 +415,7 @@ mc.regConsoleCmd('cqreconnect', '手动重连GoCQHTTP', () => {
   ws.close();
 });
 
-ll.registerPlugin('GoCQSync', '依赖GoCQHTTP的群服互通', [0, 1, 2], {
+ll.registerPlugin('GoCQSync', '依赖GoCQHTTP的群服互通', [0, 1, 3], {
   author: 'student_2333',
   license: 'Apache-2.0',
 });
