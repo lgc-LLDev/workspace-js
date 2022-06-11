@@ -45,33 +45,13 @@ function choice(condition, ifTrue, ifFalse) {
 }
 
 /**
- * 连接GoCQ
- */
-function connectGoCQ() {
-  ws = new WSClient(); // 防继续使用closed client
-  if (ws.connect(config.get('ws_url'))) colorLog('green', '成功与GoCQ建立连接');
-  else colorLog('red', '与GoCQ建立连接失败！');
-}
-
-/**
- * 检测ws连接状态
- */
-function detectConnection() {
-  if (ws.status !== ws.Open) {
-    colorLog('red', '与GoCQ失去连接！正在尝试重连……');
-    connectGoCQ();
-  }
-}
-
-/**
  * 向GoCQ发送数据
  * @param {object} data
  */
 function sendData(data) {
-  if (ws.status === ws.Open) {
-    if (!ws.send(JSON.stringify(data))) colorLog('red', '向GoCQ发送数据失败！');
-  } else {
-    colorLog('red', '与GoCQ连接已断开，发送数据失败！');
+  if (!ws.send(JSON.stringify(data))) {
+    colorLog('red', '向GoCQ发送数据失败！');
+    throw new Error('发送数据失败');
   }
 }
 
@@ -79,20 +59,27 @@ function sendData(data) {
  * 调用GoCQ API
  * @param {string} name
  * @param {object} data
- * @returns {object}
+ * @param {Function} callback
  */
-function callAPI(name, data) {
+function callAPI(name, data, callback = () => {}) {
   const echo = new Date().getTime().toString();
-  colorLog('green', `调用API"${name}"，echo=${echo}，等待返回数据`);
-  sendData({ action: name, params: data, echo });
-  for (;;) {
+  // colorLog('green', `调用API"${name}"，echo=${echo}，等待返回数据`);
+  try {
+    sendData({ action: name, params: data, echo });
+  } catch {
+    callback(undefined);
+  }
+  const checkFunc = () => {
     const ret = reqCache.get(echo);
     if (ret !== undefined) {
-      colorLog('green', `API=${name}，echo=${echo}，已返回数据：${ret}`);
+      // colorLog('green', `API=${name}，echo=${echo}，已返回数据：${ret}`);
       reqCache.delete(echo);
-      return ret;
+      callback(ret);
+    } else {
+      setTimeout(checkFunc, 0);
     }
-  }
+  };
+  checkFunc();
 }
 
 /**
@@ -100,14 +87,31 @@ function callAPI(name, data) {
  * @param {number} groupId
  * @param {string|Array<object>} message
  * @param {boolean} autoEscape 是否自动转CQ码
- * @returns {object}
+ * @param {Function} callback
  */
-function sendGroupMsg(groupId, message, autoEscape = false) {
-  return callAPI('send_group_msg', {
-    group_id: groupId,
-    message,
-    auto_escape: autoEscape,
-  });
+function sendGroupMsg(
+  groupId,
+  message,
+  autoEscape = false,
+  callback = () => {}
+) {
+  return callAPI(
+    'send_group_msg',
+    {
+      group_id: groupId,
+      message,
+      auto_escape: autoEscape,
+    },
+    callback
+  );
+}
+
+/**
+ * 获取bot运行状态
+ * @param {Function} callback
+ */
+function getStatus(callback = () => {}) {
+  return callAPI('get_status', {}, callback);
 }
 
 /**
@@ -245,7 +249,7 @@ function processGroupMsg(ev) {
 
   if (rawMessage.startsWith('/')) {
     if (
-      config.get('superusers').includes(userId) &&
+      config.get('superusers').includes(userId.toString()) &&
       userId !== selfId // 回声消息不会触发指令执行
     ) {
       const { success, output } = mc.runcmdEx(rawMessage.slice(1));
@@ -281,7 +285,8 @@ function processGroupPoke(ev) {
 /**
  * GoCQ事件处理
  */
-ws.listen('onTextReceived', (msg) => {
+function wsOnText(msg) {
+  // log(msg);
   let ev;
   try {
     ev = JSON.parse(msg);
@@ -305,7 +310,7 @@ ws.listen('onTextReceived', (msg) => {
 
   // 其他事件处理
   const enableGroups = config.get('enable_groups');
-  if (enableGroups.includes(groupId)) {
+  if (enableGroups.includes(groupId.toString())) {
     if (
       (postType === 'message' || postType === 'message_sent') &&
       messageType === 'group' &&
@@ -322,22 +327,49 @@ ws.listen('onTextReceived', (msg) => {
       processGroupPoke(ev);
     }
   }
-});
+}
 
 /**
  * ws发生错误
  */
-ws.listen('onError', (msg) => {
+function wsOnError(msg) {
   colorLog('red', `与GoCQ的连接出现错误！错误信息：${msg}`);
-});
+}
+
+/**
+ * 连接GoCQ
+ */
+function connectGoCQ() {
+  ws.close();
+  ws = new WSClient(); // 防继续使用closed client
+  ws.listen('onTextReceived', wsOnText);
+  ws.listen('onError', wsOnError);
+  if (ws.connect(config.get('ws_url'))) {
+    colorLog('green', '成功与GoCQ建立连接');
+  } else {
+    colorLog('red', '与GoCQ建立连接失败！');
+  }
+}
+
+/**
+ * 检测ws连接状态
+ */
+function detectConnection() {
+  getStatus((ret) => {
+    if (ret === undefined) {
+      colorLog('red', '与GoCQ失去连接！正在尝试重连……');
+      connectGoCQ();
+    }
+  });
+}
 
 /**
  * 服务器启动成功时启动ws连接与监控进程
  */
 mc.listen('onServerStarted', () => {
   colorLog('green', '正在与GoCQ建立连接……');
-  asyncCall(connectGoCQ).catch(colorLogErr);
-  setInterval(detectConnection, 1500);
+  asyncCall(connectGoCQ);
+  setInterval(detectConnection, 5000);
 });
 
 /**
@@ -346,7 +378,7 @@ mc.listen('onServerStarted', () => {
 mc.listen('onChat', (player, msg) => {
   asyncCall(() => {
     sendToAllEnableGroups(`[服务器] ${player.name}：${msg}`);
-  }).catch(colorLogErr);
+  });
 });
 
 /**
@@ -356,7 +388,7 @@ mc.listen('onPreJoin', (player) => {
   asyncCall(() => {
     const { name, xuid } = player;
     sendToAllEnableGroups(`[服务器] ${name} 正在尝试进入服务器，XUID：${xuid}`);
-  }).catch(colorLogErr);
+  });
 });
 
 /**
@@ -365,7 +397,7 @@ mc.listen('onPreJoin', (player) => {
 mc.listen('onJoin', (player) => {
   asyncCall(() => {
     sendToAllEnableGroups(`[服务器] 欢迎 ${player.name} 进入服务器`);
-  }).catch(colorLogErr);
+  });
 });
 
 /**
@@ -375,7 +407,7 @@ mc.listen('onLeft', (player) => {
   const { name } = player;
   asyncCall(() => {
     sendToAllEnableGroups(`[服务器] ${name} 退出了服务器`);
-  }).catch(colorLogErr);
+  });
 });
 
 mc.regConsoleCmd('cqreconnect', '手动重连GoCQHTTP', () => {
@@ -383,7 +415,7 @@ mc.regConsoleCmd('cqreconnect', '手动重连GoCQHTTP', () => {
   ws.close();
 });
 
-ll.registerPlugin('GoCQSync', '依赖GoCQHTTP的群服互通', [0, 1, 1], {
+ll.registerPlugin('GoCQSync', '依赖GoCQHTTP的群服互通', [0, 1, 2], {
   author: 'student_2333',
   license: 'Apache-2.0',
 });
