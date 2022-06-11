@@ -27,9 +27,21 @@ function asyncCall(func, ...args) {
 /**
  * 使用colorLog输出error
  * @param {Error} e
+ * @param {string} reason
  */
-function colorLogErr(e) {
-  colorLog('red', `\n${e.stack}`);
+function colorLogErr(e, reason = '') {
+  colorLog('red', `${reason}\n${e.stack}`);
+}
+
+/**
+ * 根据condition的值返回相应的指定值
+ * @param {boolean} condition
+ * @param {any} ifTrue condition===true时返回值
+ * @param {any} ifFalse condition===false时返回值
+ */
+function choice(condition, ifTrue, ifFalse) {
+  if (condition) return ifTrue;
+  return ifFalse;
 }
 
 /**
@@ -99,6 +111,17 @@ function sendGroupMsg(groupId, message, autoEscape = false) {
 }
 
 /**
+ * 向所有启用群发消息
+ * @param {string|Array<object>} msg
+ * @param {boolean} autoEscape 是否自动转CQ码
+ */
+function sendToAllEnableGroups(msg, autoEscape = false) {
+  config.get('enable_groups').forEach((g) => {
+    sendGroupMsg(g, msg, autoEscape);
+  });
+}
+
+/**
  * 消息object转文本
  * @param {Array<object>} msg
  */
@@ -126,10 +149,7 @@ function messageObjectToString(msg) {
           return addHeadAndTail('表情');
         case 'record': {
           return addHeadAndTail(
-            `${() => {
-              if (i.data.magic === '1') return '变声';
-              return '';
-            }}语音`
+            `${choice(i.data.magic === '1', '变声', '')}语音`
           );
         }
         case 'video':
@@ -147,10 +167,7 @@ function messageObjectToString(msg) {
         case 'contact': {
           const { type, id } = i.data;
           return addHeadAndTail(
-            `推荐${(() => {
-              if (type === 'qq') return '联系人';
-              return '群聊';
-            })()}：${id}`
+            `推荐${choice(type === 'qq', '联系人', '群聊')}：${id}`
           );
         }
         case 'location': {
@@ -162,10 +179,7 @@ function messageObjectToString(msg) {
         }
         case 'image': {
           return addHeadAndTail(
-            (() => {
-              if (i.data.subType === '1') return '动画表情';
-              return '图片';
-            })()
+            choice(i.data.subType === '1', '动画表情', '图片')
           );
         }
         case 'reply':
@@ -235,24 +249,20 @@ function processGroupMsg(ev) {
       userId !== selfId // 回声消息不会触发指令执行
     ) {
       const { success, output } = mc.runcmdEx(rawMessage.slice(1));
-      fastReply(
-        `执行${() => {
-          if (success) return '成功';
-          return '失败';
-        }}\n${output}`
-      );
+      fastReply(`执行${choice(success, '成功', '失败')}\n${output}`);
     } else {
       fastReply('权限不足');
     }
   }
 
   // 群聊信息转服务器
-  const { Gold, Green, Gray, Bold, Clear } = Format;
+  const { Gold, Green, Gray, LightPurple, Bold, Clear } = Format;
   mc.broadcast(
-    `${Gold}${Bold}[群聊]${Clear}${Green} ${() => {
-      if (card === '') return nickname;
-      return card;
-    }}${Gray}： ${Clear}${messageObjectToString(message)}`
+    `${LightPurple}${Bold}[群聊]${Clear}${Green} ${choice(
+      card === '',
+      nickname,
+      card
+    )}${Gold}（${userId}）${Gray}： ${Clear}${messageObjectToString(message)}`
   );
 }
 
@@ -272,7 +282,13 @@ function processGroupPoke(ev) {
  * GoCQ事件处理
  */
 ws.listen('onTextReceived', (msg) => {
-  const ev = JSON.parse(msg);
+  let ev;
+  try {
+    ev = JSON.parse(msg);
+  } catch (e) {
+    colorLogErr(e, '解析GoCQ下发数据失败');
+  }
+
   const {
     echo,
     post_type: postType,
@@ -329,9 +345,36 @@ mc.listen('onServerStarted', () => {
  */
 mc.listen('onChat', (player, msg) => {
   asyncCall(() => {
-    config.get('enable_groups').forEach((g) => {
-      sendGroupMsg(g, `[服务器] ${player.name}：${msg}`);
-    });
+    sendToAllEnableGroups(`[服务器] ${player.name}：${msg}`);
+  }).catch(colorLogErr);
+});
+
+/**
+ * 尝试进服提示
+ */
+mc.listen('onPreJoin', (player) => {
+  asyncCall(() => {
+    const { name, xuid } = player;
+    sendToAllEnableGroups(`[服务器] ${name} 正在尝试进入服务器，XUID：${xuid}`);
+  }).catch(colorLogErr);
+});
+
+/**
+ * 进服提示
+ */
+mc.listen('onJoin', (player) => {
+  asyncCall(() => {
+    sendToAllEnableGroups(`[服务器] 欢迎 ${player.name} 进入服务器`);
+  }).catch(colorLogErr);
+});
+
+/**
+ * 退服提示
+ */
+mc.listen('onLeft', (player) => {
+  const { name } = player;
+  asyncCall(() => {
+    sendToAllEnableGroups(`[服务器] ${name} 退出了服务器`);
   }).catch(colorLogErr);
 });
 
@@ -340,7 +383,7 @@ mc.regConsoleCmd('cqreconnect', '手动重连GoCQHTTP', () => {
   ws.close();
 });
 
-ll.registerPlugin('GoCQSync', '依赖GoCQHTTP的群服互通', [0, 1, 0], {
+ll.registerPlugin('GoCQSync', '依赖GoCQHTTP的群服互通', [0, 1, 1], {
   author: 'student_2333',
   license: 'Apache-2.0',
 });
