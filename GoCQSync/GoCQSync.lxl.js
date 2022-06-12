@@ -1,47 +1,37 @@
-/* global JsonConfigFile WSClient mc ll colorLog Format */
+/* global JsonConfigFile WSClient mc ll logger Format */
 
 // LiteLoaderScript Dev Helper
 /// <reference path="c:\Users\Administrator\.vscode\extensions\moxicat.llscripthelper-1.0.1\lib/Library/JS/Api.js" />
+
+// 控制台颜色控制符
+const conGreen = '\u001b[0;32m';
+// const conWhite = '\u001b[0;37m';
+const conYellow = '\u001b[0;33m';
+const conRed = '\u001b[0;31m';
+// const conBlue = '\u001b[0;34m'; // 太暗了
+const conMagenta = '\u001b[0;35m';
+const conCyan = '\u001b[0;36m';
+const conReset = '\u001b[0m';
 
 const config = new JsonConfigFile('plugins/GoCQSync/config.json');
 config.init('ws_url', 'ws://127.0.0.1:6700');
 config.init('superusers', []);
 config.init('enable_groups', []);
 
-let ws = new WSClient(); // IDE type hint
-
+const ws = new WSClient();
 const reqCache = new Map();
 
-/**
- * 同步转promise
- * @param {Function} func
- * @param  {...any} args
- * @returns {Promise}
- */
-function asyncCall(func, ...args) {
-  return new Promise((resolve) => {
-    resolve(func(...args));
-  });
-}
+logger.setTitle(`GoCQSync`);
+// logger.setLogLevel(5); // debug level
 
 /**
- * 使用colorLog输出error
- * @param {Error} e
- * @param {string} reason
+ * 生成指定区间随机整数
+ * @param {number} min
+ * @param {number} max
+ * @returns {number}
  */
-function colorLogErr(e, reason = '') {
-  colorLog('red', `${reason}\n${e.stack}`);
-}
-
-/**
- * 根据condition的值返回相应的指定值
- * @param {boolean} condition
- * @param {any} ifTrue condition===true时返回值
- * @param {any} ifFalse condition===false时返回值
- */
-function choice(condition, ifTrue, ifFalse) {
-  if (condition) return ifTrue;
-  return ifFalse;
+function getRandomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
 /**
@@ -50,7 +40,7 @@ function choice(condition, ifTrue, ifFalse) {
  */
 function sendData(data) {
   if (!ws.send(JSON.stringify(data))) {
-    colorLog('red', '向GoCQ发送数据失败！');
+    logger.error('向GoCQ发送数据失败！');
     throw new Error('发送数据失败');
   }
 }
@@ -59,24 +49,29 @@ function sendData(data) {
  * 调用GoCQ API
  * @param {string} name
  * @param {object} data
- * @param {Function} callback
+ * @param {(data:object)void} callback
  */
 function callAPI(name, data, callback = () => {}) {
   const echo = new Date().getTime().toString();
-  // colorLog('green', `调用API"${name}"，echo=${echo}，等待返回数据`);
+  const echoColor = `\u001b[0;${getRandomInt(31, 36)}m`; // 随机前景色
+  const logStart = `调用API"${conGreen}${name}${conReset}"，echo=${echoColor}${echo}${conReset}，`;
+
+  logger.debug(`${logStart}等待返回数据`);
   try {
     sendData({ action: name, params: data, echo });
   } catch {
     callback(undefined);
+    logger.debug(`${logStart}${conRed}失败`);
   }
+
   const checkFunc = () => {
     const ret = reqCache.get(echo);
     if (ret !== undefined) {
-      // colorLog('green', `API=${name}，echo=${echo}，已返回数据：${ret}`);
+      logger.debug(`${logStart}已返回数据：${conGreen}${JSON.stringify(ret)}`);
       reqCache.delete(echo);
       callback(ret);
     } else {
-      setTimeout(checkFunc, 0);
+      setTimeout(checkFunc, 0); // async
     }
   };
   checkFunc();
@@ -121,84 +116,92 @@ function getStatus(callback = () => {}) {
  */
 function sendToAllEnableGroups(msg, autoEscape = false) {
   config.get('enable_groups').forEach((g) => {
-    sendGroupMsg(g, msg, autoEscape);
+    sendGroupMsg(Number(g), msg, autoEscape);
   });
 }
 
 /**
  * 消息object转文本
  * @param {Array<object>} msg
+ * @param {string} head 特殊消息格式化时左侧文本
+ * @param {string} tail 特殊消息格式化时右侧文本
  */
-function messageObjectToString(msg) {
+function messageObjectToString(
+  msg,
+  head = `${Format.Aqua}[`,
+  tail = `]${Format.Clear}`
+) {
   /**
    * 给文字两头加上文本（处理特殊消息格式化）
    * @param {string} t text
-   * @param {string} start
-   * @param {string} end
    */
-  function addHeadAndTail(
-    t,
-    start = `${Format.Aqua}[`,
-    end = `]${Format.Clear}`
-  ) {
-    return `${start}${t}${end}`;
+  function addHeadAndTail(t) {
+    return `${head}${t}${tail}`;
   }
 
   return msg
     .map((i) => {
+      let txt;
       switch (i.type) {
         case 'text':
           return i.data.text;
         case 'face':
-          return addHeadAndTail('表情');
-        case 'record': {
-          return addHeadAndTail(
-            `${choice(i.data.magic === '1', '变声', '')}语音`
-          );
-        }
+          txt = '表情';
+          break;
+        case 'record':
+          txt = `${i.data.magic === '1' ? '变声' : ''}语音`;
+          break;
         case 'video':
-          return addHeadAndTail('视频');
+          txt = '视频';
+          break;
         case 'at':
-          return addHeadAndTail(`@${i.data.qq}`);
+          txt = `@${i.data.qq}`;
+          break;
         case 'rps':
-          return addHeadAndTail('猜拳');
+          txt = '猜拳';
+          break;
         case 'dice':
-          return addHeadAndTail('骰子');
+          txt = '骰子';
+          break;
         case 'share': {
           const { title, url } = i.data;
-          return addHeadAndTail(`分享：${title}（${url}）`);
+          txt = `分享：${title}（${url}）`;
+          break;
         }
         case 'contact': {
           const { type, id } = i.data;
-          return addHeadAndTail(
-            `推荐${choice(type === 'qq', '联系人', '群聊')}：${id}`
-          );
+          txt = `推荐${type === 'qq' ? '联系人' : '群聊'}：${id}`;
+          break;
         }
         case 'location': {
           const {
             lat, // 纬度
             lon, // 经度
           } = i.data;
-          return addHeadAndTail(`位置：${lon}, ${lat}`);
+          txt = `位置：${lon}, ${lat}`;
+          break;
         }
-        case 'image': {
-          return addHeadAndTail(
-            choice(i.data.subType === '1', '动画表情', '图片')
-          );
-        }
+        case 'image':
+          txt = i.data.subType === '1' ? '动画表情' : '图片';
+          break;
         case 'reply':
-          return addHeadAndTail('回复');
+          txt = '回复';
+          break;
         case 'redbag':
-          return addHeadAndTail(`红包：${i.data.title}`);
+          txt = `红包：${i.data.title}`;
+          break;
         case 'forward':
-          return addHeadAndTail('合并转发');
-        case 'xml':
-        // fallthrough
+          txt = '合并转发';
+          break;
+        case 'xml': // fallthrough
         case 'json':
-          return addHeadAndTail('卡片消息');
+          txt = '卡片消息';
+          break;
         default:
-          return addHeadAndTail('特殊消息');
+          txt = '特殊消息';
+          break;
       }
+      return addHeadAndTail(txt);
     })
     .join('');
 }
@@ -247,27 +250,47 @@ function processGroupMsg(ev) {
     sendGroupMsg(groupId, msg, autoEscape);
   }
 
-  if (rawMessage.startsWith('/')) {
-    if (
-      config.get('superusers').includes(userId.toString()) &&
-      userId !== selfId // 回声消息不会触发指令执行
-    ) {
-      const { success, output } = mc.runcmdEx(rawMessage.slice(1));
-      fastReply(`执行${choice(success, '成功', '失败')}\n${output}`);
-    } else {
-      fastReply('权限不足');
-    }
+  if (!(message instanceof Array)) {
+    logger.error(
+      `上报消息格式错误！请检查配置文件中的${conCyan}post-format${conRed}项是否为${conGreen}}array`
+    );
+    return;
   }
 
-  // 群聊信息转服务器
-  const { Gold, Green, Gray, LightPurple, Bold, Clear } = Format;
-  mc.broadcast(
-    `${LightPurple}${Bold}[群聊]${Clear}${Green} ${choice(
-      card === '',
-      nickname,
-      card
-    )}${Gold}（${userId}）${Gray}： ${Clear}${messageObjectToString(message)}`
+  // log输出
+  const nick = card === '' ? nickname : card;
+  const userColor = userId === selfId ? conGreen : conYellow;
+  logger.info(
+    `${conMagenta}Group ${groupId}${conReset} -> ` +
+      `${userColor}${nick}（${userId}）${conReset}：` +
+      `${messageObjectToString(message, `${conCyan}[`, `]${conReset}`)}`
   );
+
+  if (userId !== selfId) {
+    // 群聊信息转服务器
+    const { Gold, Green, Gray, LightPurple, Bold, Clear } = Format;
+    mc.broadcast(
+      `${LightPurple}${Bold}[群聊]${Clear} ` +
+        `${Green}${nick}${Gold}（${userId}）${Gray}： ` +
+        `${Clear}${messageObjectToString(message)}`
+    );
+
+    // 执行指令
+    if (rawMessage.startsWith('/')) {
+      if (config.get('superusers').includes(userId.toString())) {
+        const cmd = rawMessage.slice(1);
+
+        const { success, output } = mc.runcmdEx(cmd);
+        const stateTxt = success ? '成功' : '失败';
+        fastReply(`执行${stateTxt}\n${output}`);
+        logger.info(
+          `执行指令 ${conGreen}${cmd} ${conYellow}${stateTxt}\n${conCyan}${output}`
+        );
+      } else {
+        fastReply('权限不足');
+      }
+    }
+  }
 }
 
 /**
@@ -276,8 +299,17 @@ function processGroupMsg(ev) {
  */
 function processGroupPoke(ev) {
   // 戳一戳获取服务器状态
-  const { self_id: selfId, group_id: groupId, target_id: targetId } = ev;
+  const {
+    self_id: selfId,
+    group_id: groupId,
+    target_id: targetId,
+    user_id: userId,
+  } = ev;
   if (targetId === selfId) {
+    logger.info(
+      `${conMagenta}Group ${groupId}${conReset} -> ` +
+        `${conYellow}${userId}${conCyan}戳了戳${conReset}我`
+    );
     sendGroupMsg(groupId, getServerStat());
   }
 }
@@ -285,21 +317,15 @@ function processGroupPoke(ev) {
 /**
  * GoCQ事件处理
  */
-function wsOnText(msg) {
-  // log(msg);
-  let ev;
-  try {
-    ev = JSON.parse(msg);
-  } catch (e) {
-    colorLogErr(e, '解析GoCQ下发数据失败');
-  }
-
+function processEvent(ev) {
   const {
     echo,
     post_type: postType,
     message_type: messageType,
     notice_type: noticeType,
+    meta_event_type: metaEventType,
     sub_type: subType,
+    self_id: selfId,
     group_id: groupId,
   } = ev;
   // API调用返回处理
@@ -309,6 +335,15 @@ function wsOnText(msg) {
   }
 
   // 其他事件处理
+  if (
+    postType === 'meta_event' &&
+    metaEventType === 'lifecycle' &&
+    subType === 'connect'
+  ) {
+    // 连接成功
+    logger.info(`Bot ${conCyan}${selfId} ${conGreen}已连接`);
+  }
+
   const enableGroups = config.get('enable_groups');
   if (groupId !== undefined && enableGroups.includes(groupId.toString())) {
     if (
@@ -330,24 +365,14 @@ function wsOnText(msg) {
 }
 
 /**
- * ws发生错误
- */
-function wsOnError(msg) {
-  colorLog('red', `与GoCQ的连接出现错误！错误信息：${msg}`);
-}
-
-/**
  * 连接GoCQ
  */
 function connectGoCQ() {
   ws.close();
-  ws = new WSClient(); // 防继续使用closed client
-  ws.listen('onTextReceived', wsOnText);
-  ws.listen('onError', wsOnError);
   if (ws.connect(config.get('ws_url'))) {
-    colorLog('green', '成功与GoCQ建立连接');
+    logger.info(`${conGreen}成功与GoCQ建立连接`);
   } else {
-    colorLog('red', '与GoCQ建立连接失败！');
+    logger.error('与GoCQ建立连接失败！');
   }
 }
 
@@ -357,47 +382,88 @@ function connectGoCQ() {
 function detectConnection() {
   getStatus((ret) => {
     if (ret === undefined) {
-      colorLog('red', '与GoCQ失去连接！正在尝试重连……');
+      logger.error(
+        `调用接口失败！可能与GoCQ失去连接！${conReset}正在尝试重连……`
+      );
       connectGoCQ();
     }
   });
 }
 
 /**
+ * 解析GoCQ下发数据
+ */
+ws.listen('onTextReceived', (text) => {
+  logger.debug(`收到数据：${conCyan}${text}`);
+
+  let ev;
+  try {
+    ev = JSON.parse(text);
+  } catch (e) {
+    logger.error(`解析GoCQ下发数据失败\n${e.stack}`);
+    return;
+  }
+  processEvent(ev);
+});
+
+/**
+ * ws发生错误
+ */
+/*
+ws.listen('onError', (msg) => {
+  logger.error(`与GoCQ的连接出现错误！错误信息：${msg}`);
+});
+*/
+
+/**
+ * 向主线程抛出error
+ * @param {Error} e error
+ */
+function throwError(e) {
+  setTimeout(() => {
+    throw e;
+  }, 0);
+}
+
+/**
  * 服务器启动成功时启动ws连接与监控进程
  */
 mc.listen('onServerStarted', () => {
-  colorLog('green', '正在与GoCQ建立连接……');
-  asyncCall(connectGoCQ);
-  setInterval(detectConnection, 5000);
+  (async () => {
+    logger.info(`${conGreen}正在尝试与GoCQ建立连接……`);
+    connectGoCQ();
+
+    setInterval(detectConnection, 5000);
+    logger.info(`${conGreen}连接状态监控进程已启动`);
+  })().catch(throwError);
 });
 
 /**
  * 游戏内聊天转发到群
  */
 mc.listen('onChat', (player, msg) => {
-  asyncCall(() => {
+  (async () => {
     sendToAllEnableGroups(`[服务器] ${player.name}：${msg}`);
-  });
+  })().catch(throwError);
 });
 
 /**
  * 尝试进服提示
  */
 mc.listen('onPreJoin', (player) => {
-  asyncCall(() => {
+  (async () => {
     const { name, xuid } = player;
     sendToAllEnableGroups(`[服务器] ${name} 正在尝试进入服务器，XUID：${xuid}`);
-  });
+  })().catch(throwError);
 });
 
 /**
  * 进服提示
  */
 mc.listen('onJoin', (player) => {
-  asyncCall(() => {
+  (async () => {
     sendToAllEnableGroups(`[服务器] 欢迎 ${player.name} 进入服务器`);
-  });
+  })().catch(throwError);
 });
 
 /**
@@ -405,17 +471,24 @@ mc.listen('onJoin', (player) => {
  */
 mc.listen('onLeft', (player) => {
   const { name } = player;
-  asyncCall(() => {
+  (async () => {
     sendToAllEnableGroups(`[服务器] ${name} 退出了服务器`);
-  });
+  })().catch(throwError);
 });
 
 mc.regConsoleCmd('cqreconnect', '手动重连GoCQHTTP', () => {
-  colorLog('yellow', '正在与GoCQ断开连接……');
-  ws.close();
+  logger.info(`${conYellow}正在与GoCQ断开连接……`);
+  const success = ws.close();
+  if (success)
+    logger.info(
+      `${conGreen}成功与GoCQ断开连接！${conYellow}等待监控进程重连……`
+    );
+  else logger.error('断开与GoCQ的连接失败！');
+  return success;
 });
 
-ll.registerPlugin('GoCQSync', '依赖GoCQHTTP的群服互通', [0, 1, 3], {
+ll.registerPlugin('GoCQSync', '依赖GoCQHTTP的群服互通', [0, 2, 0], {
   author: 'student_2333',
   license: 'Apache-2.0',
 });
+logger.info(`${conGreen}插件加载成功，欢迎使用～`);
