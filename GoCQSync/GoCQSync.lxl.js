@@ -252,7 +252,7 @@ function processGroupMsg(ev) {
 
   if (!(message instanceof Array)) {
     logger.error(
-      `上报消息格式错误！请检查配置文件中的${conCyan}post-format${conRed}项是否为${conGreen}}array`
+      `上报消息格式错误！请检查配置文件中的${conCyan}post-format${conRed}项是否为${conGreen}array`
     );
     return;
   }
