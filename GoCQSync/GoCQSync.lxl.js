@@ -17,12 +17,14 @@ const config = new JsonConfigFile('plugins/GoCQSync/config.json');
 config.init('ws_url', 'ws://127.0.0.1:6700');
 config.init('superusers', []);
 config.init('enable_groups', []);
+config.init('log_level', 4);
 
 const ws = new WSClient();
 const reqCache = new Map();
+let detectTaskId;
 
 logger.setTitle(`GoCQSync`);
-// logger.setLogLevel(5); // debug level
+logger.setLogLevel(config.get('log_level'));
 
 /**
  * 生成指定区间随机整数
@@ -32,6 +34,16 @@ logger.setTitle(`GoCQSync`);
  */
 function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1) + min);
+}
+
+/**
+ * 向主线程抛出error
+ * @param {Error} e error
+ */
+function throwError(e) {
+  setTimeout(() => {
+    throw e;
+  }, 0);
 }
 
 /**
@@ -366,28 +378,59 @@ function processEvent(ev) {
 
 /**
  * 连接GoCQ
+ * @returns {boolean} 是否成功
  */
 function connectGoCQ() {
   ws.close();
-  if (ws.connect(config.get('ws_url'))) {
+  const success = ws.connect(config.get('ws_url'));
+  if (success) {
     logger.info(`${conGreen}成功与GoCQ建立连接`);
   } else {
     logger.error('与GoCQ建立连接失败！');
   }
+  return success;
 }
 
 /**
- * 检测ws连接状态
+ * 重连GoCQ
  */
-function detectConnection() {
-  getStatus((ret) => {
-    if (ret === undefined) {
-      logger.error(
-        `调用接口失败！可能与GoCQ失去连接！${conReset}正在尝试重连……`
-      );
-      connectGoCQ();
+function reconnectGoCQ() {
+  const reconnect = () => {
+    if (!connectGoCQ()) {
+      logger.info(`${conYellow}3s后尝试再次重连……`);
+      setTimeout(reconnect, 3000);
+    } else {
+      // eslint-disable-next-line no-use-before-define
+      startDetectConnection();
     }
-  });
+  };
+  reconnect();
+}
+
+/**
+ * 停止检测ws连接状态进程
+ */
+function stopDetectConnection() {
+  clearInterval(detectTaskId);
+  logger.info(`${conYellow}连接状态监控进程已停止`);
+}
+
+/**
+ * 启动检测ws连接状态进程
+ */
+function startDetectConnection() {
+  detectTaskId = setInterval(() => {
+    getStatus((ret) => {
+      if (ret === undefined) {
+        logger.error(
+          `调用接口失败！可能与GoCQ失去连接！${conReset}正在尝试重连……`
+        );
+        stopDetectConnection();
+        reconnectGoCQ();
+      }
+    });
+  }, 5000);
+  logger.info(`${conGreen}连接状态监控进程已启动`);
 }
 
 /**
@@ -409,21 +452,20 @@ ws.listen('onTextReceived', (text) => {
 /**
  * ws发生错误
  */
-/*
 ws.listen('onError', (msg) => {
-  logger.error(`与GoCQ的连接出现错误！错误信息：${msg}`);
+  logger.error(`与GoCQ的连接出现错误！错误信息：${conCyan}${msg}`);
 });
-*/
 
 /**
- * 向主线程抛出error
- * @param {Error} e error
+ * 丢失与GoCQ连接处理
  */
-function throwError(e) {
-  setTimeout(() => {
-    throw e;
-  }, 0);
-}
+ws.listen('onLostConnection', (code) => {
+  stopDetectConnection();
+  logger.error(
+    `与GoCQ失去连接！错误码：${conYellow}${code}${conReset}，正在尝试重连……`
+  );
+  reconnectGoCQ();
+});
 
 /**
  * 服务器启动成功时启动ws连接与监控进程
@@ -431,10 +473,7 @@ function throwError(e) {
 mc.listen('onServerStarted', () => {
   (async () => {
     logger.info(`${conGreen}正在尝试与GoCQ建立连接……`);
-    connectGoCQ();
-
-    setInterval(detectConnection, 5000);
-    logger.info(`${conGreen}连接状态监控进程已启动`);
+    reconnectGoCQ();
   })().catch(throwError);
 });
 
@@ -487,8 +526,8 @@ mc.regConsoleCmd('cqreconnect', '手动重连GoCQHTTP', () => {
   return success;
 });
 
-ll.registerPlugin('GoCQSync', '依赖GoCQHTTP的群服互通', [0, 2, 0], {
-  author: 'student_2333',
-  license: 'Apache-2.0',
+ll.registerPlugin('GoCQSync', '依赖GoCQHTTP的群服互通', [0, 2, 1], {
+  Author: 'student_2333',
+  License: 'Apache-2.0',
 });
 logger.info(`${conGreen}插件加载成功，欢迎使用～`);
