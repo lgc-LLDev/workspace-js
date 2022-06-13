@@ -21,7 +21,7 @@ config.init('log_level', 4);
 
 const ws = new WSClient();
 const reqCache = new Map();
-let detectTaskId;
+// let detectTaskId;
 
 logger.setTitle(`GoCQSync`);
 logger.setLogLevel(config.get('log_level'));
@@ -117,9 +117,11 @@ function sendGroupMsg(
  * 获取bot运行状态
  * @param {Function} callback
  */
+/*
 function getStatus(callback = () => {}) {
   return callAPI('get_status', {}, callback);
 }
+*/
 
 /**
  * 向所有启用群发消息
@@ -392,17 +394,20 @@ function connectGoCQ() {
 }
 
 /**
- * 重连GoCQ
+ * 重连GoCQ (async)
  */
 function reconnectGoCQ() {
   const reconnect = () => {
-    if (!connectGoCQ()) {
+    logger.info(`${conGreen}正在尝试与GoCQ建立连接……`);
+    const ok = connectGoCQ();
+    if (!ok) {
       logger.info(`${conYellow}3s后尝试再次重连……`);
       setTimeout(reconnect, 3000);
     } else {
       // eslint-disable-next-line no-use-before-define
-      startDetectConnection();
+      // startDetectConnection();
     }
+    return ok;
   };
   reconnect();
 }
@@ -410,15 +415,21 @@ function reconnectGoCQ() {
 /**
  * 停止检测ws连接状态进程
  */
+/*
 function stopDetectConnection() {
   clearInterval(detectTaskId);
   logger.info(`${conYellow}连接状态监控进程已停止`);
 }
+*/
 
 /**
  * 启动检测ws连接状态进程
  */
+/*
 function startDetectConnection() {
+  // 别问我为什么要调用接口校验连接
+  // 因为 ws.state===ws.Open 的值即使连接上了也是false！！
+  // 又是llse的锅……
   detectTaskId = setInterval(() => {
     getStatus((ret) => {
       if (ret === undefined) {
@@ -432,6 +443,7 @@ function startDetectConnection() {
   }, 5000);
   logger.info(`${conGreen}连接状态监控进程已启动`);
 }
+*/
 
 /**
  * 解析GoCQ下发数据
@@ -460,7 +472,7 @@ ws.listen('onError', (msg) => {
  * 丢失与GoCQ连接处理
  */
 ws.listen('onLostConnection', (code) => {
-  stopDetectConnection();
+  // stopDetectConnection();
   logger.error(
     `与GoCQ失去连接！错误码：${conYellow}${code}${conReset}，正在尝试重连……`
   );
@@ -471,10 +483,7 @@ ws.listen('onLostConnection', (code) => {
  * 服务器启动成功时启动ws连接与监控进程
  */
 mc.listen('onServerStarted', () => {
-  (async () => {
-    logger.info(`${conGreen}正在尝试与GoCQ建立连接……`);
-    reconnectGoCQ();
-  })().catch(throwError);
+  reconnectGoCQ();
 });
 
 /**
@@ -516,17 +525,11 @@ mc.listen('onLeft', (player) => {
 });
 
 mc.regConsoleCmd('cqreconnect', '手动重连GoCQHTTP', () => {
-  logger.info(`${conYellow}正在与GoCQ断开连接……`);
-  const success = ws.close();
-  if (success)
-    logger.info(
-      `${conGreen}成功与GoCQ断开连接！${conYellow}等待监控进程重连……`
-    );
-  else logger.error('断开与GoCQ的连接失败！');
-  return success;
+  logger.info(`${conYellow}正在尝试重连……`);
+  return reconnectGoCQ();
 });
 
-ll.registerPlugin('GoCQSync', '依赖GoCQHTTP的群服互通', [0, 2, 1], {
+ll.registerPlugin('GoCQSync', '依赖GoCQHTTP的群服互通', [0, 2, 2], {
   Author: 'student_2333',
   License: 'Apache-2.0',
 });
