@@ -7,6 +7,8 @@ Author: [student_2333](https://github.com/lgc2333)
 
 License: Apache-2.0
 
+[插件下载安装教程](tutorial.md)
+
 ## Description
 
 Plugins for LiteLoader-ScriptEngine
