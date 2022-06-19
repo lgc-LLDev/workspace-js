@@ -20,34 +20,35 @@ function getRandomInt(min, max) {
 }
 
 /**
- * 进行签到
- * @param {Player} player
- */
-function doSign(player) {
-  const addMoney = getRandomInt(minMoney, maxMoney);
-  money.add(player.xuid, addMoney);
-
-  const { Green, MinecoinGold, Clear, Bold, Yellow, Aqua } = Format;
-  const msg =
-    `${Green}欢迎回来， ${Bold}${MinecoinGold}${Clear}${Green}~\n` +
-    `今日进入游戏签到获取了 ${Bold}${Yellow}${addMoney} ${Clear}${Aqua}${moneyName}${Green}~`;
-  player.sendText(msg);
-  player.sendText(msg, 5);
-}
-
-/**
  * 签到
  * @param {Player} player
  */
 function sign(player) {
-  const nowDate = new Date(new Date().toLocaleDateString());
-  const lastSignDate = new Date(logConf.get(player.realName));
-  if (lastSignDate) {
-    if (lastSignDate < nowDate) {
-      doSign();
-    }
-  } else {
-    doSign(player);
+  const nowDate = new Date().toLocaleDateString();
+  const lastSignDate = logConf.get(player.xuid);
+  logger.info(
+    `玩家 ${player.realName} 上次签到 ${lastSignDate}，当前 ${nowDate}`
+  );
+
+  if (lastSignDate !== nowDate) {
+    const addMoney = getRandomInt(minMoney, maxMoney);
+    logger.info(
+      `玩家 ${player.realName} 执行签到，给予 ${addMoney} ${moneyName}`
+    );
+
+    money.add(player.xuid, addMoney);
+    logConf.set(player.xuid, nowDate);
+
+    const { Green, MinecoinGold, Clear, Bold, Yellow, Aqua } = Format;
+    const msg = [
+      `${Green}欢迎回来， ${Bold}${MinecoinGold}${player.realName}${Clear}${Green}~`,
+      `今日进入游戏签到获取了 ${Bold}${Yellow}${addMoney} ${Clear}${Aqua}${moneyName}${Green}~`,
+    ];
+
+    player.sendText(msg.join('\n'));
+    mc.runcmd(`title "${player.name}" subtitle ${msg[1]}`);
+    mc.runcmd(`title "${player.name}" title ${msg[0]}`);
+    mc.runcmd(`playsound random.levelup "${player.name}"`);
   }
 }
 
