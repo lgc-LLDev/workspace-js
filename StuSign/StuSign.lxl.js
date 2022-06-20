@@ -1,6 +1,6 @@
 /* global mc logger ll JsonConfigFile money Format */
-// LiteXLoader Dev Helper
-/// <reference path="c:\Users\Administrator\.vscode\extensions\moxicat.llscripthelper-1.0.1\lib/Library/JS/Api.js" />
+// LiteLoaderScript Dev Helper
+/// <reference path="d:\Coding\bds\.vscode\LLSEDevHelper/Library/JS/Api.js" />
 
 const config = new JsonConfigFile('plugins/StuSign/config.json');
 const minMoney = config.init('minMoney', 500);
@@ -54,7 +54,18 @@ function sign(player) {
 
 mc.listen('onJoin', sign);
 
-ll.registerPlugin('StuSign', '简洁的入服签到插件', [0, 1, 0], {
+setInterval(() => {
+  const date = new Date();
+  if (
+    date.getHours() === 0 &&
+    date.getMinutes() === 0 &&
+    date.getSeconds() === 0
+  ) {
+    mc.getOnlinePlayers().forEach((pl) => sign(pl));
+  }
+}, 1000);
+
+ll.registerPlugin('StuSign', '简洁的入服签到插件', [0, 1, 1], {
   Author: 'student_2333',
   License: 'Apache-2.0',
 });
