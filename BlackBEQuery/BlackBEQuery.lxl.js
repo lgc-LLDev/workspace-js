@@ -1,8 +1,9 @@
-/* global ll mc */
+/* global ll mc JsonConfigFile */
+// LiteLoaderScript Dev Helper
+/// <reference path="d:\Coding\bds\.vscode\LLSEDevHelper/Library/JS/Api.js" />
 
-// LiteXLoader Dev Helper
-// eslint-disable-next-line max-len
-/// <reference path="c:\Users\Administrator\.vscode\extensions\moxicat.llscripthelper-1.0.1\lib/Library/JS/Api.js" />
+const config = new JsonConfigFile('plugins/GoCQSync/config.json');
+const apiToken = config.init('apiToken', '');
 
 const plInfo = {
   name: 'BlackBEQuery',
