@@ -1,4 +1,4 @@
-/* global ll mc JsonConfigFile Format */
+/* global mc JsonConfigFile Format */
 // LiteXLoader Dev Helper
 /// <reference path="E:\Coding\bds\.vscode\LLSEDevHelper/Library/JS/Api.js" />
 
@@ -192,7 +192,9 @@ mc.listen('onPlayerDie', (pl, src_) => {
   );
 });
 
+/*
 ll.registerPlugin(pluginName, '自助查询死亡记录', [0, 1, 0], {
   Author: 'student_2333',
   License: 'Apache-2.0',
 });
+*/
