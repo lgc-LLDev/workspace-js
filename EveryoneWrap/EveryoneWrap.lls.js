@@ -100,8 +100,8 @@ function addWarp(pl_) {
       `${pl_.name} 创建的Warp`
     );
   pl_.sendForm(form, (pl, data) => {
-    if (data[0]) {
-      pl.tell(`${Green}创建成功！`); // 同名warp检测
+    if (data && data[0]) {
+      pl.tell(`${Green}创建成功！`);
       const wraps = getWarpConf();
       wraps.push(getWarpObj(pl, data[0]));
       setWarpConf(wraps);
@@ -169,8 +169,12 @@ function clearAlwaysDisplayTask(pl) {
   pl.tell(`${Green}本次导航完成~欢迎下次使用~`, 5);
 }
 
-function newAlwaysDisplayTask(pl_, pos) {
+function newAlwaysDisplayTask(pl_, warp) {
   const { xuid } = pl_;
+  if (alwaysDisplayTasks.get(xuid)) {
+    pl_.tell(`${Red}已有导航正在进行中，请先结束`);
+    return;
+  }
 
   function task() {
     const pl = mc.getPlayer(xuid);
@@ -183,7 +187,8 @@ function newAlwaysDisplayTask(pl_, pos) {
     const {
       pos: { x, y, z },
     } = pl;
-    const { x: dx, y: dy, z: dz } = pos;
+    const { pos, name } = warp;
+    const { x: dx, y: dy, z: dz, dimId } = pos;
     const distance = Math.sqrt(
       (x - dx) * (x - dx) + (y - dy) * (y - dy) + (z - dz) * (z - dz)
     ).toFixed(2);
@@ -193,8 +198,10 @@ function newAlwaysDisplayTask(pl_, pos) {
       return;
     }
 
-    let msg = `${MinecoinGold}目标位置：${formatPos(pos)}${Clear} | `;
-    if (pl_.pos.dimid !== pos.dimId) {
+    let msg =
+      `${Green}${name}${Clear} | ` +
+      `${MinecoinGold}目标位置：${formatPos(pos)}${Clear} | `;
+    if (pl_.pos.dimid !== dimId) {
       msg += `${Red}维度不匹配`;
     } else {
       msg += `${MinecoinGold}距离 ${Green}${distance} ${MinecoinGold}方块`;
@@ -233,7 +240,7 @@ function warpList(pl) {
       if (id !== undefined && id !== null) {
         switch (id) {
           case 0:
-            newAlwaysDisplayTask(pl__, pos);
+            newAlwaysDisplayTask(pl__, warp);
             break;
           case 1:
             warpList(pl__);

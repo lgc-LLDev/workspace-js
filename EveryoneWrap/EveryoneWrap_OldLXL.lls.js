@@ -100,8 +100,8 @@ function addWarp(pl_) {
       `${pl_.name} 创建的Warp`
     );
   pl_.sendForm(form, (pl, data) => {
-    if (data[0]) {
-      pl.tell(`${Green}创建成功！`); // 同名warp检测
+    if (data && data[0]) {
+      pl.tell(`${Green}创建成功！`);
       const wraps = getWarpConf();
       wraps.push(getWarpObj(pl, data[0]));
       setWarpConf(wraps);
