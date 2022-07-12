@@ -15,8 +15,8 @@ const conReset = '\u001b[0m';
 
 const config = new JsonConfigFile('plugins/GoCQSync/config.json');
 config.init('ws_url', 'ws://127.0.0.1:6700');
-config.init('superusers', []);
-config.init('enable_groups', []);
+config.init('superusers', [""]);
+config.init('enable_groups', [""]);
 config.init('log_level', 4);
 
 const ws = new WSClient();
@@ -152,72 +152,22 @@ function messageObjectToString(
   function addHeadAndTail(t) {
     return `${head}${t}${tail}`;
   }
-
-  return msg
-    .map((i) => {
-      let txt;
-      switch (i.type) {
-        case 'text':
-          return i.data.text;
-        case 'face':
-          txt = '表情';
-          break;
-        case 'record':
-          txt = `${i.data.magic === '1' ? '变声' : ''}语音`;
-          break;
-        case 'video':
-          txt = '视频';
-          break;
-        case 'at':
-          txt = `@${i.data.qq}`;
-          break;
-        case 'rps':
-          txt = '猜拳';
-          break;
-        case 'dice':
-          txt = '骰子';
-          break;
-        case 'share': {
-          const { title, url } = i.data;
-          txt = `分享：${title}（${url}）`;
-          break;
-        }
-        case 'contact': {
-          const { type, id } = i.data;
-          txt = `推荐${type === 'qq' ? '联系人' : '群聊'}：${id}`;
-          break;
-        }
-        case 'location': {
-          const {
-            lat, // 纬度
-            lon, // 经度
-          } = i.data;
-          txt = `位置：${lon}, ${lat}`;
-          break;
-        }
-        case 'image':
-          txt = i.data.subType === '1' ? '动画表情' : '图片';
-          break;
-        case 'reply':
-          txt = '回复';
-          break;
-        case 'redbag':
-          txt = `红包：${i.data.title}`;
-          break;
-        case 'forward':
-          txt = '合并转发';
-          break;
-        case 'xml': // fallthrough
-        case 'json':
-          txt = '卡片消息';
-          break;
-        default:
-          txt = '特殊消息';
-          break;
-      }
-      return addHeadAndTail(txt);
-    })
-    .join('');
+    msg=msg.replace(/\[CQ:image.*\]/g,"[图片]")
+    msg=msg.replace(/\[CQ:face.*\]/g,"[表情]")
+    msg=msg.replace(/\[CQ:record.*\]/g,"[语音]")
+    msg=msg.replace(/\[CQ:video.*\]/g,"[视频]")
+    msg=msg.replace(/\[CQ:at,qq=([0-9]*)\]/g,"[@$1]
+    msg=msg.replace(/\[CQ:rps.*\]/g,"[猜拳]")
+    msg=msg.replace(/\[CQ:dice.*\]/g,"[骰子]")
+    msg=msg.replace(/\[CQ:share.*\]/g,"[分享]")
+    msg=msg.replace(/\[CQ:contact.*\]/g,"[推荐]")
+    msg=msg.replace(/\[CQ:location.*\]/g,"[定位]")
+    msg=msg.replace(/\[CQ:reply.*\]/g,"[回复]")
+    msg=msg.replace(/\[CQ:redbag.*\]/g,"[红包来了!]
+    msg=msg.replace(/\[CQ:forward.*\]/g,"[转发]")
+    msg=msg.replace(/\[CQ:xml.*\]/g,"[卡片信息]")
+    msg=msg.replace(/\[CQ:json.*\]/g,"[卡片信息]")
+  return msg;
 }
 
 /**
@@ -235,7 +185,7 @@ LL版本：${ll.versionString()}
 ${playerLi
   .map((p) => {
     const dv = p.getDevice();
-    return `${p.name} | ${dv.os} | ${dv.avgPing}ms(${dv.avgPacketLoss}% loss)`;
+    return `${p.realName} | ${dv.os} | ${dv.avgPing}ms(${dv.avgPacketLoss}% loss)`;
   })
   .join('\n')}
 `.trim();
@@ -264,12 +214,12 @@ function processGroupMsg(ev) {
     sendGroupMsg(groupId, msg, autoEscape);
   }
 
-  if (!(message instanceof Array)) {
-    logger.error(
-      `上报消息格式错误！请检查配置文件中的${conCyan}post-format${conRed}项是否为${conGreen}array`
-    );
-    return;
-  }
+  //if (!(message instanceof Array)) {
+  //  logger.error(
+  //    `上报消息格式错误！请检查配置文件中的${conCyan}post-format${conRed}项是否为${conGreen}array`
+  //  );
+  //  return;
+  //}
 
   // log输出
   const nick = card === '' ? nickname : card;
@@ -491,7 +441,7 @@ mc.listen('onServerStarted', () => {
  */
 mc.listen('onChat', (player, msg) => {
   (async () => {
-    sendToAllEnableGroups(`[服务器] ${player.name}：${msg}`);
+    sendToAllEnableGroups(`[服务器] ${player.realName}：${msg}`);
   })().catch(throwError);
 });
 
@@ -500,8 +450,8 @@ mc.listen('onChat', (player, msg) => {
  */
 mc.listen('onPreJoin', (player) => {
   (async () => {
-    const { name, xuid } = player;
-    sendToAllEnableGroups(`[服务器] ${name} 正在尝试进入服务器，XUID：${xuid}`);
+    const { realName, xuid } = player;
+    sendToAllEnableGroups(`[服务器] ${realName} 正在尝试进入服务器，XUID：${xuid}`);
   })().catch(throwError);
 });
 
@@ -510,7 +460,7 @@ mc.listen('onPreJoin', (player) => {
  */
 mc.listen('onJoin', (player) => {
   (async () => {
-    sendToAllEnableGroups(`[服务器] 欢迎 ${player.name} 进入服务器`);
+    sendToAllEnableGroups(`[服务器] 欢迎 ${player.realName} 进入服务器`);
   })().catch(throwError);
 });
 
@@ -518,9 +468,9 @@ mc.listen('onJoin', (player) => {
  * 退服提示
  */
 mc.listen('onLeft', (player) => {
-  const { name } = player;
+  const { realName } = player;
   (async () => {
-    sendToAllEnableGroups(`[服务器] ${name} 退出了服务器`);
+    sendToAllEnableGroups(`[服务器] ${realName} 退出了服务器`);
   })().catch(throwError);
 });
 
