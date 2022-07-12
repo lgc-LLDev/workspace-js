@@ -169,8 +169,8 @@ function text2Array(msg) {
       const dataArr = dataRaw.split(',');
       dataArr.shift(); // ['a=1', 'b=a']
       dataArr.forEach((it) => {
-        const d = it.split('=');
-        data[d[0]] = d[1];
+        const [x, y] = it.split('=');
+        data[x] = y;
       });
 
       tmp.push(getCodeObj(type, data));
@@ -316,13 +316,7 @@ function processGroupMsg(ev) {
     sendGroupMsg(groupId, msg, autoEscape);
   }
 
-  //if (!(message instanceof Array)) {
-  //  logger.error(
-  //    `上报消息格式错误！请检查配置文件中的${conCyan}post-format${conRed}项是否为${conGreen}array`
-  //  );
-  //  return;
-  //}
-  if (message instanceof String) message = text2Array(message);
+  if (!(message instanceof Array)) message = text2Array(message);
 
   // log输出
   const nick = card === '' ? nickname : card;
