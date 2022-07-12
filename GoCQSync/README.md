@@ -64,7 +64,7 @@
          监听端口可以按需修改  
          监听 IP 地址最好不要设为`0.0.0.0`，因为插件连接时无法使用`access token（访问密钥）`（llse 无法发出带请求头的 ws 连接，且貌似 GoCQ 不支持 ws 连接时 get 参数提供的 access token），这样将会允许外网连接你的 GoCQ（防火墙/安全组规则允许的情况下）  
          当监听 IP 地址设置为`127.0.0.1`时将只允许内网连接，可以保证安全性
-      3. 将`message`项下的`post-format`修改为`array`（插件正常处理消息需要用到）  
+      3. （可选）将`message`项下的`post-format`修改为`array`（以前插件正常处理消息需要用到，现在不用了）  
          ![示例](readme/123.png)
       4. （可选）将`message`项下的`report-self-message`修改为`true`
          ![示例](readme/124.png)  
@@ -85,15 +85,15 @@
   // 一般情况下与GoCQ配置项保持一致，前面加上 ws:// 即可
   "ws_url": "ws://127.0.0.1:6700",
 
-  // 管理员列表：Array<String>
+  // 管理员列表：Array<Number | String>
   // 管理员可以用“/”开头的消息来执行控制台指令
   // 别问为什么用string，问就是llse的锅 (https://github.com/LiteLDev/LiteLoaderBDS/issues/456)
-  "superusers": ["1234567890"],
+  "superusers": [1234567890],
 
-  // 启用群聊：Array<String>
+  // 启用群聊：Array<Number | String>
   // 游戏内的聊天消息、进服退服提示都会发送到这些群聊
   // 同时只有这些群聊才会响应戳一戳查看服务器状态以及执行控制台指令等操作
-  "enable_groups": ["987654321"],
+  "enable_groups": [987654321],
 
   // 日志输出等级：Number
   // 见 https://docs.litebds.com/#/zh_CN/Development/ScriptAPI/Logger?id=%e6%a6%82%e5%bf%b5%ef%bc%9a%e5%85%b3%e4%ba%8e%e6%97%a5%e5%bf%97%e8%be%93%e5%87%ba%e7%ad%89%e7%ba%a7
@@ -145,5 +145,9 @@ QQ：3076823485
   - 优化重连
 - 0.2.2
   - 弃用监控连接状态进程（别问我为什么，问就是有 bug）
+- 0.3.0
+  - 优化玩家名字显示为真名（`realName`）
+  - 使用正则匹配 CQ 码信息，新增`post-format`配置为`string`时的处理
+  - 由于[此 Bug](https://github.com/LiteLDev/LiteLoaderBDS/issues/456)已经修复，现在可以在配置项使用 Number
 
 ## 文档待完善 (\*σ´∀`)σ

@@ -338,7 +338,12 @@ function processGroupMsg(ev) {
 
     // 执行指令
     if (rawMessage.startsWith('/')) {
-      if (config.get('superusers').includes(userId.toString())) {
+      if (
+        config
+          .get('superusers')
+          .map((i) => i.toString())
+          .includes(userId.toString())
+      ) {
         const cmd = rawMessage.slice(1);
 
         const { success, output } = mc.runcmdEx(cmd);
@@ -405,7 +410,7 @@ function processEvent(ev) {
     logger.info(`Bot ${conCyan}${selfId} ${conGreen}已连接`);
   }
 
-  const enableGroups = config.get('enable_groups');
+  const enableGroups = config.get('enable_groups').map((i) => i.toString());
   if (groupId !== undefined && enableGroups.includes(groupId.toString())) {
     if (
       (postType === 'message' || postType === 'message_sent') &&
@@ -578,7 +583,7 @@ mc.regConsoleCmd('cqreconnect', '手动重连GoCQHTTP', () => {
   return reconnectGoCQ();
 });
 
-ll.registerPlugin('GoCQSync', '依赖GoCQHTTP的群服互通', [0, 2, 2], {
+ll.registerPlugin('GoCQSync', '依赖GoCQHTTP的群服互通', [0, 3, 0], {
   Author: 'student_2333',
   License: 'Apache-2.0',
 });
