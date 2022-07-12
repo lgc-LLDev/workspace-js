@@ -1,7 +1,7 @@
 /* global JsonConfigFile WSClient mc ll logger Format */
 
 // LiteLoaderScript Dev Helper
-/// <reference path="c:\Users\Administrator\.vscode\extensions\moxicat.llscripthelper-1.0.1\lib/Library/JS/Api.js" />
+/// <reference path="E:\Coding\bds\.vscode\LLSEDevHelper/Library/JS/Api.js" />
 
 // 控制台颜色控制符
 const conGreen = '\u001b[0;32m';
@@ -15,8 +15,8 @@ const conReset = '\u001b[0m';
 
 const config = new JsonConfigFile('plugins/GoCQSync/config.json');
 config.init('ws_url', 'ws://127.0.0.1:6700');
-config.init('superusers', [""]);
-config.init('enable_groups', [""]);
+config.init('superusers', ['']);
+config.init('enable_groups', ['']);
 config.init('log_level', 4);
 
 const ws = new WSClient();
@@ -135,6 +135,58 @@ function sendToAllEnableGroups(msg, autoEscape = false) {
 }
 
 /**
+ * 消息text转array
+ * @param {string} msg
+ */
+function text2Array(msg) {
+  /**
+   * CQCode Object
+   * @param {string} type
+   * @param {object} data
+   */
+  function getCodeObj(type, data) {
+    return { type, data };
+  }
+
+  // https://github.com/nonebot/adapter-onebot/blob/master/nonebot/adapters/onebot/v11/message.py#L301
+  const cqRegex = /\[CQ:([a-zA-Z0-9-_.]+)((?:,[a-zA-Z0-9-_.]+=[^,\]]*)*),?\]/gu;
+
+  const tmp = [];
+  let lastRightBracket = 0;
+  for (;;) {
+    const result = cqRegex.exec(msg);
+    const { lastIndex } = cqRegex;
+    // let msg='123[CQ:test],456[CQ:tteesstt,a=1,b=a]'
+    // ['[CQ:tteesstt,a=1,b=a]', 'tteesstt', ',a=1,b=a', index: 16, input: '123[CQ:test],456[CQ:tteesstt,a=1,b=a]', groups: undefined]
+
+    if (result) {
+      const { index, 0: raw, 1: type, 2: dataRaw } = result;
+
+      if (index > 0 && lastIndex !== index)
+        tmp.push(getCodeObj('text', { text: msg.substring(lastIndex, index) }));
+
+      const data = {};
+      const dataArr = dataRaw.split(',');
+      dataArr.shift(); // ['a=1', 'b=a']
+      dataArr.forEach((it) => {
+        const d = it.split('=');
+        data[d[0]] = d[1];
+      });
+
+      tmp.push(getCodeObj(type, data));
+      lastRightBracket = index + raw.length;
+    } else {
+      break;
+    }
+  }
+
+  const tail = msg.substring(lastRightBracket);
+  if (tail) tmp.push(getCodeObj('text', { text: tail }));
+
+  return tmp;
+}
+
+/**
  * 消息object转文本
  * @param {Array<object>} msg
  * @param {string} head 特殊消息格式化时左侧文本
@@ -152,22 +204,72 @@ function messageObjectToString(
   function addHeadAndTail(t) {
     return `${head}${t}${tail}`;
   }
-    msg=msg.replace(/\[CQ:image.*\]/g,"[图片]")
-    msg=msg.replace(/\[CQ:face.*\]/g,"[表情]")
-    msg=msg.replace(/\[CQ:record.*\]/g,"[语音]")
-    msg=msg.replace(/\[CQ:video.*\]/g,"[视频]")
-    msg=msg.replace(/\[CQ:at,qq=([0-9]*)\]/g,"[@$1]
-    msg=msg.replace(/\[CQ:rps.*\]/g,"[猜拳]")
-    msg=msg.replace(/\[CQ:dice.*\]/g,"[骰子]")
-    msg=msg.replace(/\[CQ:share.*\]/g,"[分享]")
-    msg=msg.replace(/\[CQ:contact.*\]/g,"[推荐]")
-    msg=msg.replace(/\[CQ:location.*\]/g,"[定位]")
-    msg=msg.replace(/\[CQ:reply.*\]/g,"[回复]")
-    msg=msg.replace(/\[CQ:redbag.*\]/g,"[红包来了!]
-    msg=msg.replace(/\[CQ:forward.*\]/g,"[转发]")
-    msg=msg.replace(/\[CQ:xml.*\]/g,"[卡片信息]")
-    msg=msg.replace(/\[CQ:json.*\]/g,"[卡片信息]")
-  return msg;
+
+  return msg
+    .map((i) => {
+      let txt;
+      switch (i.type) {
+        case 'text':
+          return i.data.text;
+        case 'face':
+          txt = '表情';
+          break;
+        case 'record':
+          txt = `${i.data.magic === '1' ? '变声' : ''}语音`;
+          break;
+        case 'video':
+          txt = '视频';
+          break;
+        case 'at':
+          txt = `@${i.data.qq}`;
+          break;
+        case 'rps':
+          txt = '猜拳';
+          break;
+        case 'dice':
+          txt = '骰子';
+          break;
+        case 'share': {
+          const { title, url } = i.data;
+          txt = `分享：${title}（${url}）`;
+          break;
+        }
+        case 'contact': {
+          const { type, id } = i.data;
+          txt = `推荐${type === 'qq' ? '联系人' : '群聊'}：${id}`;
+          break;
+        }
+        case 'location': {
+          const {
+            lat, // 纬度
+            lon, // 经度
+          } = i.data;
+          txt = `位置：${lon}, ${lat}`;
+          break;
+        }
+        case 'image':
+          txt = i.data.subType === '1' ? '动画表情' : '图片';
+          break;
+        case 'reply':
+          txt = '回复';
+          break;
+        case 'redbag':
+          txt = `红包：${i.data.title}`;
+          break;
+        case 'forward':
+          txt = '合并转发';
+          break;
+        case 'xml': // fallthrough
+        case 'json':
+          txt = '卡片消息';
+          break;
+        default:
+          txt = '特殊消息';
+          break;
+      }
+      return addHeadAndTail(txt);
+    })
+    .join('');
 }
 
 /**
@@ -199,11 +301,11 @@ function processGroupMsg(ev) {
   const {
     self_id: selfId,
     user_id: userId,
-    message,
     raw_message: rawMessage,
     group_id: groupId,
     sender: { nickname, card },
   } = ev;
+  let { message } = ev;
 
   /**
    * 往来源群聊发送消息
@@ -220,6 +322,7 @@ function processGroupMsg(ev) {
   //  );
   //  return;
   //}
+  if (message instanceof String) message = text2Array(message);
 
   // log输出
   const nick = card === '' ? nickname : card;
@@ -451,7 +554,9 @@ mc.listen('onChat', (player, msg) => {
 mc.listen('onPreJoin', (player) => {
   (async () => {
     const { realName, xuid } = player;
-    sendToAllEnableGroups(`[服务器] ${realName} 正在尝试进入服务器，XUID：${xuid}`);
+    sendToAllEnableGroups(
+      `[服务器] ${realName} 正在尝试进入服务器，XUID：${xuid}`
+    );
   })().catch(throwError);
 });
 
