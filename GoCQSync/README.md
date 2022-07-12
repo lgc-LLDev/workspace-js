@@ -149,5 +149,7 @@ QQ：3076823485
   - 优化玩家名字显示为真名（`realName`）
   - 使用正则匹配 CQ 码信息，新增`post-format`配置为`string`时的处理
   - 由于[此 Bug](https://github.com/LiteLDev/LiteLoaderBDS/issues/456)已经修复，现在可以在配置项使用 Number
+- 0.3.1
+  - 修复正则匹配CQ码
 
 ## 文档待完善 (\*σ´∀`)σ

@@ -154,8 +154,8 @@ function text2Array(msg) {
   const tmp = [];
   let lastRightBracket = 0;
   for (;;) {
-    const result = cqRegex.exec(msg);
     const { lastIndex } = cqRegex;
+    const result = cqRegex.exec(msg);
     // let msg='123[CQ:test],456[CQ:tteesstt,a=1,b=a]'
     // ['[CQ:tteesstt,a=1,b=a]', 'tteesstt', ',a=1,b=a', index: 16, input: '123[CQ:test],456[CQ:tteesstt,a=1,b=a]', groups: undefined]
 
@@ -583,7 +583,7 @@ mc.regConsoleCmd('cqreconnect', '手动重连GoCQHTTP', () => {
   return reconnectGoCQ();
 });
 
-ll.registerPlugin('GoCQSync', '依赖GoCQHTTP的群服互通', [0, 3, 0], {
+ll.registerPlugin('GoCQSync', '依赖GoCQHTTP的群服互通', [0, 3, 1], {
   Author: 'student_2333',
   License: 'Apache-2.0',
 });
