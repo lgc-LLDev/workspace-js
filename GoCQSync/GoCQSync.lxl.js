@@ -1,7 +1,7 @@
 /* global JsonConfigFile WSClient mc ll logger Format */
 
 // LiteLoaderScript Dev Helper
-/// <reference path="c:\Users\Administrator\.vscode\extensions\moxicat.llscripthelper-1.0.1\lib/Library/JS/Api.js" />
+/// <reference path="E:\Coding\bds\.vscode\LLSEDevHelper/Library/JS/Api.js" />
 
 // 控制台颜色控制符
 const conGreen = '\u001b[0;32m';
@@ -15,8 +15,8 @@ const conReset = '\u001b[0m';
 
 const config = new JsonConfigFile('plugins/GoCQSync/config.json');
 config.init('ws_url', 'ws://127.0.0.1:6700');
-config.init('superusers', []);
-config.init('enable_groups', []);
+config.init('superusers', ['']);
+config.init('enable_groups', ['']);
 config.init('log_level', 4);
 
 const ws = new WSClient();
@@ -135,6 +135,58 @@ function sendToAllEnableGroups(msg, autoEscape = false) {
 }
 
 /**
+ * 消息text转array
+ * @param {string} msg
+ */
+function text2Array(msg) {
+  /**
+   * CQCode Object
+   * @param {string} type
+   * @param {object} data
+   */
+  function getCodeObj(type, data) {
+    return { type, data };
+  }
+
+  // https://github.com/nonebot/adapter-onebot/blob/master/nonebot/adapters/onebot/v11/message.py#L301
+  const cqRegex = /\[CQ:([a-zA-Z0-9-_.]+)((?:,[a-zA-Z0-9-_.]+=[^,\]]*)*),?\]/gu;
+
+  const tmp = [];
+  let lastRightBracket = 0;
+  for (;;) {
+    const result = cqRegex.exec(msg);
+    const { lastIndex } = cqRegex;
+    // let msg='123[CQ:test],456[CQ:tteesstt,a=1,b=a]'
+    // ['[CQ:tteesstt,a=1,b=a]', 'tteesstt', ',a=1,b=a', index: 16, input: '123[CQ:test],456[CQ:tteesstt,a=1,b=a]', groups: undefined]
+
+    if (result) {
+      const { index, 0: raw, 1: type, 2: dataRaw } = result;
+
+      if (index > 0 && lastIndex !== index)
+        tmp.push(getCodeObj('text', { text: msg.substring(lastIndex, index) }));
+
+      const data = {};
+      const dataArr = dataRaw.split(',');
+      dataArr.shift(); // ['a=1', 'b=a']
+      dataArr.forEach((it) => {
+        const [x, y] = it.split('=');
+        data[x] = y;
+      });
+
+      tmp.push(getCodeObj(type, data));
+      lastRightBracket = index + raw.length;
+    } else {
+      break;
+    }
+  }
+
+  const tail = msg.substring(lastRightBracket);
+  if (tail) tmp.push(getCodeObj('text', { text: tail }));
+
+  return tmp;
+}
+
+/**
  * 消息object转文本
  * @param {Array<object>} msg
  * @param {string} head 特殊消息格式化时左侧文本
@@ -235,7 +287,7 @@ LL版本：${ll.versionString()}
 ${playerLi
   .map((p) => {
     const dv = p.getDevice();
-    return `${p.name} | ${dv.os} | ${dv.avgPing}ms(${dv.avgPacketLoss}% loss)`;
+    return `${p.realName} | ${dv.os} | ${dv.avgPing}ms(${dv.avgPacketLoss}% loss)`;
   })
   .join('\n')}
 `.trim();
@@ -249,11 +301,11 @@ function processGroupMsg(ev) {
   const {
     self_id: selfId,
     user_id: userId,
-    message,
     raw_message: rawMessage,
     group_id: groupId,
     sender: { nickname, card },
   } = ev;
+  let { message } = ev;
 
   /**
    * 往来源群聊发送消息
@@ -264,12 +316,7 @@ function processGroupMsg(ev) {
     sendGroupMsg(groupId, msg, autoEscape);
   }
 
-  if (!(message instanceof Array)) {
-    logger.error(
-      `上报消息格式错误！请检查配置文件中的${conCyan}post-format${conRed}项是否为${conGreen}array`
-    );
-    return;
-  }
+  if (!(message instanceof Array)) message = text2Array(message);
 
   // log输出
   const nick = card === '' ? nickname : card;
@@ -491,7 +538,7 @@ mc.listen('onServerStarted', () => {
  */
 mc.listen('onChat', (player, msg) => {
   (async () => {
-    sendToAllEnableGroups(`[服务器] ${player.name}：${msg}`);
+    sendToAllEnableGroups(`[服务器] ${player.realName}：${msg}`);
   })().catch(throwError);
 });
 
@@ -500,8 +547,10 @@ mc.listen('onChat', (player, msg) => {
  */
 mc.listen('onPreJoin', (player) => {
   (async () => {
-    const { name, xuid } = player;
-    sendToAllEnableGroups(`[服务器] ${name} 正在尝试进入服务器，XUID：${xuid}`);
+    const { realName, xuid } = player;
+    sendToAllEnableGroups(
+      `[服务器] ${realName} 正在尝试进入服务器，XUID：${xuid}`
+    );
   })().catch(throwError);
 });
 
@@ -510,7 +559,7 @@ mc.listen('onPreJoin', (player) => {
  */
 mc.listen('onJoin', (player) => {
   (async () => {
-    sendToAllEnableGroups(`[服务器] 欢迎 ${player.name} 进入服务器`);
+    sendToAllEnableGroups(`[服务器] 欢迎 ${player.realName} 进入服务器`);
   })().catch(throwError);
 });
 
@@ -518,9 +567,9 @@ mc.listen('onJoin', (player) => {
  * 退服提示
  */
 mc.listen('onLeft', (player) => {
-  const { name } = player;
+  const { realName } = player;
   (async () => {
-    sendToAllEnableGroups(`[服务器] ${name} 退出了服务器`);
+    sendToAllEnableGroups(`[服务器] ${realName} 退出了服务器`);
   })().catch(throwError);
 });
 
