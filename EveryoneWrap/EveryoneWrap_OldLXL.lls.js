@@ -169,21 +169,20 @@ function clearAlwaysDisplayTask(pl) {
   pl.tell(`${Green}本次导航完成~欢迎下次使用~`, 5);
 }
 
-function newAlwaysDisplayTask(pl_, pos) {
+function newAlwaysDisplayTask(pl_, warp) {
   const { xuid } = pl_;
+  if (alwaysDisplayTasks.get(xuid)) {
+    pl_.tell(`${Red}已有导航正在进行中，请先结束`);
+    return;
+  }
 
   function task() {
     const pl = mc.getPlayer(xuid);
-
-    if (!pl) {
-      clearAlwaysDisplayTask(pl);
-      return;
-    }
-
     const {
       pos: { x, y, z },
     } = pl;
-    const { x: dx, y: dy, z: dz } = pos;
+    const { pos, name } = warp;
+    const { x: dx, y: dy, z: dz, dimId } = pos;
     const distance = Math.sqrt(
       (x - dx) * (x - dx) + (y - dy) * (y - dy) + (z - dz) * (z - dz)
     ).toFixed(2);
@@ -193,8 +192,10 @@ function newAlwaysDisplayTask(pl_, pos) {
       return;
     }
 
-    let msg = `${MinecoinGold}目标位置：${formatPos(pos)}${Clear} | `;
-    if (pl_.pos.dimid !== pos.dimId) {
+    let msg =
+      `${Green}${name}${Clear} | ` +
+      `${MinecoinGold}目标位置：${formatPos(pos)}${Clear} | `;
+    if (pl_.pos.dimid !== dimId) {
       msg += `${Red}维度不匹配`;
     } else {
       msg += `${MinecoinGold}距离 ${Green}${distance} ${MinecoinGold}方块`;
@@ -233,7 +234,7 @@ function warpList(pl) {
       if (id !== undefined && id !== null) {
         switch (id) {
           case 0:
-            newAlwaysDisplayTask(pl__, pos);
+            newAlwaysDisplayTask(pl__, warp);
             break;
           case 1:
             warpList(pl__);
@@ -283,6 +284,8 @@ function warpManage(pl_) {
   );
 }
 
+mc.listen('onLeft', (pl) => clearAlwaysDisplayTask(pl));
+
 function cmdWrapManage(pl) {
   warpManage(pl);
   return true;
@@ -300,7 +303,7 @@ mc.regPlayerCmd('wrapmanage', '管理Wrap', cmdWrapManage);
 mc.regPlayerCmd('warpm', '管理Wrap', cmdWrapManage);
 
 /*
-ll.registerPlugin(pluginName, '公共坐标点', [0, 1, 0], {
+ll.registerPlugin(pluginName, '公共坐标点', [0, 1, 1], {
   Author: 'student_2333',
   License: 'Apache-2.0',
 });

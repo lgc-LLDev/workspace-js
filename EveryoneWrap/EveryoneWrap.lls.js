@@ -178,12 +178,6 @@ function newAlwaysDisplayTask(pl_, warp) {
 
   function task() {
     const pl = mc.getPlayer(xuid);
-
-    if (!pl) {
-      clearAlwaysDisplayTask(pl);
-      return;
-    }
-
     const {
       pos: { x, y, z },
     } = pl;
@@ -290,6 +284,8 @@ function warpManage(pl_) {
   );
 }
 
+mc.listen('onLeft', (pl) => clearAlwaysDisplayTask(pl));
+
 function registerManageCmd() {
   const cmd = mc.newCommand('warpmanage', '管理Warp');
   cmd.setAlias('warpm');
@@ -331,7 +327,7 @@ function registerCmd() {
 
 registerCmd();
 
-ll.registerPlugin(pluginName, '公共坐标点', [0, 1, 0], {
+ll.registerPlugin(pluginName, '公共坐标点', [0, 1, 1], {
   Author: 'student_2333',
   License: 'Apache-2.0',
 });
