@@ -27,7 +27,7 @@
 ## 安装方法
 
 见[插件下载安装教程](tutorial.md)  
-老旧的LL版本加载`DeathQuery.lxl.js`报错的，可以使用`DeathQuery_OldLXL.lxl.js`
+老旧的 LL 版本加载`DeathQuery.lxl.js`报错的，可以使用`DeathQuery_OldLXL.lxl.js`
 
 ## 配置文件
 
@@ -43,4 +43,5 @@
 
 ## 更新日志
 
-无
+- 1.0.1
+  - 修复指令权限

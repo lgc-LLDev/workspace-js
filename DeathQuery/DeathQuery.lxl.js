@@ -1,4 +1,4 @@
-/* global ll mc JsonConfigFile Format */
+/* global ll mc JsonConfigFile Format PermType */
 // LiteXLoader Dev Helper
 /// <reference path="E:\Coding\bds\.vscode\LLSEDevHelper/Library/JS/Api.js" />
 
@@ -168,7 +168,7 @@ function clearLog(pl) {
 }
 
 function registerQueryCmd() {
-  const cmd = mc.newCommand('deathlog', '查看最近死亡记录');
+  const cmd = mc.newCommand('deathlog', '查看最近死亡记录', PermType.Any);
   cmd.setAlias('dl');
 
   cmd.setCallback((_, origin, out) => {
@@ -185,7 +185,7 @@ function registerQueryCmd() {
 }
 
 function registerClearCmd() {
-  const cmd = mc.newCommand('cleardeathlog', '清除死亡记录');
+  const cmd = mc.newCommand('cleardeathlog', '清除死亡记录', PermType.Any);
   cmd.setAlias('cdl');
 
   cmd.setCallback((_, origin, out) => {
@@ -216,7 +216,7 @@ mc.listen('onPlayerDie', (pl, src_) => {
 });
 registerCmd();
 
-ll.registerPlugin(pluginName, '自助查询死亡记录', [0, 1, 0], {
+ll.registerPlugin(pluginName, '自助查询死亡记录', [0, 1, 1], {
   Author: 'student_2333',
   License: 'Apache-2.0',
 });

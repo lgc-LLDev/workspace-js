@@ -1,4 +1,4 @@
-/* global ll mc JsonConfigFile Format */
+/* global ll mc JsonConfigFile Format PermType */
 // LiteLoaderScript Dev Helper
 /// <reference path="E:\Coding\bds\.vscode\LLSEDevHelper/Library/JS/Api.js" />
 
@@ -287,7 +287,7 @@ function warpManage(pl_) {
 mc.listen('onLeft', (pl) => clearAlwaysDisplayTask(pl));
 
 function registerManageCmd() {
-  const cmd = mc.newCommand('warpmanage', '管理Warp');
+  const cmd = mc.newCommand('warpmanage', '管理Warp', PermType.Any);
   cmd.setAlias('warpm');
 
   cmd.setCallback((_, origin, out) => {
@@ -304,7 +304,7 @@ function registerManageCmd() {
 }
 
 function registerListCmd() {
-  const cmd = mc.newCommand('warplist', '查看Warp');
+  const cmd = mc.newCommand('warplist', '查看Warp', PermType.Any);
   cmd.setAlias('warp');
 
   cmd.setCallback((_, origin, out) => {
@@ -327,7 +327,7 @@ function registerCmd() {
 
 registerCmd();
 
-ll.registerPlugin(pluginName, '公共坐标点', [0, 1, 1], {
+ll.registerPlugin(pluginName, '公共坐标点', [0, 1, 2], {
   Author: 'student_2333',
   License: 'Apache-2.0',
 });
