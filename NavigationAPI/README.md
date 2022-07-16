@@ -1,6 +1,6 @@
-# NavigationCore
+# NavigationAPI
 
-导航功能核心
+导航功能API
 
 ## 提示
 
