@@ -1,12 +1,13 @@
-/* global ll mc JsonConfigFile Format PermType */
+/* global mc JsonConfigFile Format logger */
 // LiteLoaderScript Dev Helper
 /// <reference path="E:\Coding\bds\.vscode\LLSEDevHelper/Library/JS/Api.js" />
 
-const pluginName = 'EveryoneWrap';
+const pluginName = 'EveryoneWarp';
+const confDir = `plugins/${pluginName}`;
+const confPath = `${confDir}/warps.json`;
+const warpConf = new JsonConfigFile(confPath);
 
-const warpConf = new JsonConfigFile(`plugins/${pluginName}/warps.json`);
 const alwaysDisplayTasks = new Map();
-
 const {
   Red,
   DarkGreen,
@@ -20,11 +21,11 @@ const {
 } = Format;
 
 function getWarpConf() {
-  return warpConf.get('wraps', []);
+  return warpConf.get('warps', []);
 }
 
 function setWarpConf(conf) {
-  return warpConf.set('wraps', conf);
+  return warpConf.set('warps', conf);
 }
 
 function formatPos(pos) {
@@ -102,9 +103,9 @@ function addWarp(pl_) {
   pl_.sendForm(form, (pl, data) => {
     if (data && data[0]) {
       pl.tell(`${Green}创建成功！`);
-      const wraps = getWarpConf();
-      wraps.push(getWarpObj(pl, data[0]));
-      setWarpConf(wraps);
+      const warps = getWarpConf();
+      warps.push(getWarpObj(pl, data[0]));
+      setWarpConf(warps);
     } else {
       pl.tell(`${Red}操作取消`);
     }
@@ -127,7 +128,7 @@ function confirmBox(pl, tip, callback) {
   );
 }
 
-function deleteWrap(pl_) {
+function deleteWarp(pl_) {
   const form = mc
     .newSimpleForm()
     .setTitle('删除Warp')
@@ -170,6 +171,10 @@ function clearAlwaysDisplayTask(pl) {
 }
 
 function newAlwaysDisplayTask(pl_, warp) {
+  function formatXZPos(x, z) {
+    return `${Green}${x.toFixed()} ${Red}~ ${Aqua}${z.toFixed()}`;
+  }
+
   const { xuid } = pl_;
   if (alwaysDisplayTasks.get(xuid)) {
     pl_.tell(`${Red}已有导航正在进行中，请先结束`);
@@ -196,7 +201,16 @@ function newAlwaysDisplayTask(pl_, warp) {
       `${Green}${name}${Clear} | ` +
       `${MinecoinGold}目标位置：${formatPos(pos)}${Clear} | `;
     if (pl_.pos.dimid !== dimId) {
-      msg += `${Red}维度不匹配`;
+      msg += (() => {
+        switch (dimId) {
+          case 0:
+            return `${MinecoinGold}地狱坐标：${formatXZPos(dx / 8, dz / 8)}`;
+          case 1:
+            return `${MinecoinGold}主世界坐标：${formatXZPos(dx * 8, dz * 8)}`;
+          default:
+            return `${Red}维度不匹配`;
+        }
+      })();
     } else {
       msg += `${MinecoinGold}距离 ${Green}${distance} ${MinecoinGold}方块`;
     }
@@ -261,7 +275,7 @@ function warpManage(pl_) {
   pl_.sendForm(
     mc
       .newSimpleForm()
-      .setTitle('Wrap管理')
+      .setTitle('Warp管理')
       .addButton('添加Warp')
       .addButton('删除Warp')
       .addButton('取消导航'),
@@ -272,7 +286,7 @@ function warpManage(pl_) {
             addWarp(pl);
             break;
           case 1:
-            deleteWrap(pl);
+            deleteWarp(pl);
             break;
           case 2:
             clearAlwaysDisplayTask(pl);
@@ -286,48 +300,36 @@ function warpManage(pl_) {
 
 mc.listen('onLeft', (pl) => clearAlwaysDisplayTask(pl));
 
-function registerManageCmd() {
-  const cmd = mc.newCommand('warpmanage', '管理Warp', PermType.Any);
-  cmd.setAlias('warpm');
-
-  cmd.setCallback((_, origin, out) => {
-    if (!origin.player) {
-      out.error('该命令只能由玩家执行');
-      return false;
-    }
-    warpManage(origin.player);
-    return true;
-  });
-
-  cmd.overload();
-  cmd.setup();
+function cmdWarpManage(pl) {
+  warpManage(pl);
+  return true;
 }
 
-function registerListCmd() {
-  const cmd = mc.newCommand('warplist', '查看Warp', PermType.Any);
-  cmd.setAlias('warp');
-
-  cmd.setCallback((_, origin, out) => {
-    if (!origin.player) {
-      out.error('该命令只能由玩家执行');
-      return false;
-    }
-    warpList(origin.player);
-    return true;
-  });
-
-  cmd.overload();
-  cmd.setup();
+function cmdWarpList(pl) {
+  warpList(pl);
+  return true;
 }
 
-function registerCmd() {
-  registerManageCmd();
-  registerListCmd();
-}
+mc.regPlayerCmd('warplist', '查看Warp', cmdWarpList);
+mc.regPlayerCmd('warp', '查看Warp', cmdWarpList);
 
-registerCmd();
+mc.regPlayerCmd('warpmanage', '管理Warp', cmdWarpManage);
+mc.regPlayerCmd('warpm', '管理Warp', cmdWarpManage);
 
-ll.registerPlugin(pluginName, '公共坐标点', [0, 1, 2], {
+(() => {
+  const oldConfDir = `plugins/EveryoneWrap`;
+  const oldConfPath = `${oldConfDir}/warps.json`;
+
+  if (File.exists(oldConfPath)) {
+    setWarpConf(new JsonConfigFile(oldConfPath).get('wraps'));
+    File.rename(oldConfPath, `${confDir}/warps_old.json`);
+    logger.info('旧的插件数据迁移完毕');
+  }
+})();
+
+/*
+ll.registerPlugin(pluginName, '公共坐标点', [0, 1, 3], {
   Author: 'student_2333',
   License: 'Apache-2.0',
 });
+*/

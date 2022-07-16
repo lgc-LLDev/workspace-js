@@ -1,6 +1,6 @@
 <!-- markdownlint-disable MD031 MD033 MD036 -->
 
-# EveryoneWrap
+# EveryoneWarp
 
 玩家公共传送点  
 感谢腐竹 **Z.**（2775497761） 给出的开发建议~
@@ -12,7 +12,7 @@
 - 所有玩家都可以添加 Warp
 - Warp 无法传送，纯生存服务器首选
 - 独特的导航功能
-- 玩家只能删除他们自己创建的 wrap，OP 可以任意删除
+- 玩家只能删除他们自己创建的 warp，OP 可以任意删除
 - Warp 没有防重名机制
 
 ### Pictures
@@ -30,7 +30,7 @@
 ## 安装方法
 
 见[插件下载安装教程](tutorial.md)  
-老旧的 LL 版本加载`EveryoneWrap.lls.js`报错的，可以使用`EveryoneWrap_OldLXL.lls.js`
+老旧的 LL 版本加载`EveryoneWarp.lls.js`报错的，可以使用`EveryoneWarp_OldLXL.lls.js`
 
 ## 配置文件
 
@@ -40,6 +40,9 @@
 
 - 0.1.1
   - 修复玩家退服时候导航未关闭
-  - 修复`EveryoneWrap_OldLXL.lls.js`能同时启动两个导航
+  - 修复`EveryoneWarp_OldLXL.lls.js`能同时启动两个导航
 - 0.1.2
   - 修复指令权限
+- 0.1.3
+  - 修复错误的命名（`wrap`->`warp`）
+  - 导航加入地狱、主世界维度坐标换算
