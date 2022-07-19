@@ -1,5 +1,7 @@
 # BlackBEQuery
 
+**插件已停止开发，请移步[LLBlackBEEx](https://github.com/lgc2333/LLSEPlugins/tree/main/LLBlackBEEx)**
+
 Version: 1.0.2
 
 Author: [student_2333](https://github.com/lgc2333)
@@ -34,5 +36,5 @@ _注：LLSE 暂不支持 GET 请求带 Headers，因安全性考虑，暂不实�
   - 重新格式化代码
   - 一些小修改
 - 2022.2.25
-  - 引入ESLint规范代码（以前Python写多了现在变量老忘声明，这波属于ESLint直接教我做人）
-  - 修改了插件加载时输出Log的代码（Object.prototype没有entries函数……我学的假ES6？）
+  - 引入 ESLint 规范代码（以前 Python 写多了现在变量老忘声明，这波属于 ESLint 直接教我做人）
+  - 修改了插件加载时输出 Log 的代码（Object.prototype 没有 entries 函数……我学的假 ES6？）
