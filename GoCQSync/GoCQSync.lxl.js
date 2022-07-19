@@ -18,6 +18,8 @@ config.init('ws_url', 'ws://127.0.0.1:6700');
 config.init('superusers', ['']);
 config.init('enable_groups', ['']);
 config.init('log_level', 4);
+config.init('cmd_prefix', '/');
+config.init('cmd_status', '查询');
 
 const ws = new WSClient();
 const reqCache = new Map();
@@ -273,6 +275,21 @@ function messageObjectToString(
 }
 
 /**
+ * 消息object提取纯文本
+ * @param {Array<object>} msg
+ */
+function messageObjectExtractString(msg) {
+  return msg
+    .map((it) => {
+      if (it.type === 'text') {
+        return it.data.text;
+      }
+      return '';
+    })
+    .join('');
+}
+
+/**
  * 获取服务器状态
  * @returns {string}
  */
@@ -301,7 +318,7 @@ function processGroupMsg(ev) {
   const {
     self_id: selfId,
     user_id: userId,
-    raw_message: rawMessage,
+    // raw_message: rawMessage,
     group_id: groupId,
     sender: { nickname, card },
   } = ev;
@@ -317,6 +334,7 @@ function processGroupMsg(ev) {
   }
 
   if (!(message instanceof Array)) message = text2Array(message);
+  const txtMsg = messageObjectExtractString(message);
 
   // log输出
   const nick = card === '' ? nickname : card;
@@ -337,14 +355,14 @@ function processGroupMsg(ev) {
     );
 
     // 执行指令
-    if (rawMessage.startsWith('/')) {
+    if (txtMsg.startsWith(config.get('cmd_prefix'))) {
       if (
         config
           .get('superusers')
           .map((i) => i.toString())
           .includes(userId.toString())
       ) {
-        const cmd = rawMessage.slice(1);
+        const cmd = txtMsg.slice(1);
 
         const { success, output } = mc.runcmdEx(cmd);
         const stateTxt = success ? '成功' : '失败';
@@ -355,6 +373,8 @@ function processGroupMsg(ev) {
       } else {
         fastReply('权限不足');
       }
+    } else if (txtMsg === config.get('cmd_status')) {
+      sendGroupMsg(groupId, getServerStat());
     }
   }
 }
@@ -583,7 +603,7 @@ mc.regConsoleCmd('cqreconnect', '手动重连GoCQHTTP', () => {
   return reconnectGoCQ();
 });
 
-ll.registerPlugin('GoCQSync', '依赖GoCQHTTP的群服互通', [0, 3, 1], {
+ll.registerPlugin('GoCQSync', '依赖GoCQHTTP的群服互通', [0, 4, 0], {
   Author: 'student_2333',
   License: 'Apache-2.0',
 });

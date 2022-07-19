@@ -86,19 +86,25 @@
   "ws_url": "ws://127.0.0.1:6700",
 
   // 管理员列表：Array<Number | String>
-  // 管理员可以用“/”开头的消息来执行控制台指令
+  // 管理员可以用下方对应配置开头的消息来执行控制台指令
   // 别问为什么用string，问就是llse的锅 (https://github.com/LiteLDev/LiteLoaderBDS/issues/456)
-  "superusers": [1234567890],
+  "superusers": ["1234567890"],
 
   // 启用群聊：Array<Number | String>
   // 游戏内的聊天消息、进服退服提示都会发送到这些群聊
   // 同时只有这些群聊才会响应戳一戳查看服务器状态以及执行控制台指令等操作
-  "enable_groups": [987654321],
+  "enable_groups": ["987654321"],
 
   // 日志输出等级：Number
   // 见 https://docs.litebds.com/#/zh_CN/Development/ScriptAPI/Logger?id=%e6%a6%82%e5%bf%b5%ef%bc%9a%e5%85%b3%e4%ba%8e%e6%97%a5%e5%bf%97%e8%be%93%e5%87%ba%e7%ad%89%e7%ba%a7
   // 本插件只会输出 ERROR INFO DEBUG 等级的日志，一般情况保持默认即可
-  "log_level": 4
+  "log_level": 4,
+
+  // 管理员执行控制台指令的消息前缀
+  "cmd_prefix": "/",
+
+  // 查询服务器状态指令（与戳一戳相同）
+  "cmd_status": "查询"
 }
 ```
 
@@ -150,6 +156,8 @@ QQ：3076823485
   - 使用正则匹配 CQ 码信息，新增`post-format`配置为`string`时的处理
   - 由于[此 Bug](https://github.com/LiteLDev/LiteLoaderBDS/issues/456)已经修复，现在可以在配置项使用 Number
 - 0.3.1
-  - 修复正则匹配CQ码
+  - 修复正则匹配 CQ 码
+- 0.4.0
+  - 添加配置项`cmd_prefix`、`cmd_status`，详情见[配置文件](#配置文件)
 
 ## 文档待完善 (\*σ´∀`)σ
