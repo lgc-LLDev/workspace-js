@@ -1,4 +1,11 @@
+<!-- markdownlint-disable MD033 MD041 -->
+
+<div align="center">
+  <img src="readme/icon.png" height="256px" width="256px"/>
+
 # LLBlackBEEx
+
+</div>
 
 [LxlBlackBE](https://www.minebbs.com/threads/lxlblackbe.7482/)的改进版，全部改用真命令注册，并且加入了私有库支持与游戏内查询（移植自[BlackBEQuery](https://github.com/lgc2333/LLSEPlugins/tree/main/BlackBEQuery)）
 
