@@ -117,3 +117,9 @@ QQ：3076823485
   ![讨饭](https://raw.githubusercontents.com/lgc2333/ShigureBotMenu/master/src/imgs/sponsor.png)
 
   </details>
+
+## 更新日志
+
+- 0.1.1
+  - 修复了在末地时显示坐标换算的 Bug
+  - 修复玩家到地方不能结束导航
