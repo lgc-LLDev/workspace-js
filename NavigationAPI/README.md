@@ -85,12 +85,20 @@ function hasNavigationTask(xuid) {}
 
 [EveryoneWrap](../EveryoneWarp/EveryoneWarp.lls.js)
 
+### 指令
+
+插件提供一个指令`/stopnav`用于停止命令执行者的导航任务
+
 ## 安装
 
 见[插件下载安装教程](../tutorial.md)  
 `NavigationAPI.min.lls.js`为我用 js 压缩工具得到的代码
 
 一般情况下如果插件开发者使用了我给出的 URL 作为前置依赖的远程下载链接，则**本插件不需要另外手动下载安装**
+
+## 配置文件
+
+插件没有配置文件
 
 ## 鸣谢
 
@@ -123,3 +131,4 @@ QQ：3076823485
 - 0.1.1
   - 修复了在末地时显示坐标换算的 Bug
   - 修复玩家到地方不能结束导航
+  - 修改了指令`stopnavigation` -> `stopnav`
