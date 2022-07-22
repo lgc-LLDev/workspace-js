@@ -7,7 +7,14 @@ const confDir = `plugins/${pluginName}`;
 const confPath = `${confDir}/warps.json`;
 const warpConf = new JsonConfigFile(confPath);
 
-const alwaysDisplayTasks = new Map();
+ll.require(
+  'NavigationAPI.lls.js',
+  'https://www.lgc2333.top/llse/NavigationAPI.min.lls.js'
+);
+const newNavigationTask = ll.import('NavAPI_newTask');
+const clearNavigationTask = ll.import('NavAPI_clearTask');
+const hasNavigationTask = ll.import('NavAPI_hasTask');
+
 const {
   Red,
   DarkGreen,
@@ -60,18 +67,14 @@ function formatDate(date) {
   return `${yr}-${mon}-${day} ${hr}:${min}:${sec}`;
 }
 
-function getWarpObj(pl, warpName) {
-  function posItem(pos) {
-    const { x, y, z, dim, dimid: dimId } = pos;
-    return { x, y, z, dim, dimId };
-  }
-
-  const { name, realName, xuid, pos } = pl;
+function getWarpObj(pl, pos, warpName, desc = null) {
+  const { name, realName, xuid } = pl;
   return {
     player: { name, realName, xuid },
-    pos: posItem(pos),
+    pos,
     name: warpName,
     date: new Date().toJSON(),
+    desc,
   };
 }
 
@@ -84,7 +87,7 @@ function addWarpButton(form, warps) {
       name,
     } = i;
     formTmp = form.addButton(
-      `${Bold}${Green}${name}${Clear}\n` +
+      `${Bold}${DarkGreen}${name}${Clear}\n` +
         `${formatPos(pos)}${Clear} - ${MinecoinGold}${playerName}`
     );
   });
@@ -92,20 +95,46 @@ function addWarpButton(form, warps) {
 }
 
 function addWarp(pl_) {
+  const {
+    pos: { x: x_, y: y_, z: z_, dimid: dimId_ },
+  } = pl_;
+  const strX = x_.toFixed(2).toString();
+  const strY = y_.toFixed(2).toString();
+  const strZ = z_.toFixed(2).toString();
   const form = mc
     .newCustomForm()
     .setTitle('添加Warp')
-    .addInput(
-      '请输入Warp名称，你现在站的位置将会成为Warp坐标',
-      '',
-      `${pl_.name} 创建的Warp`
-    );
+    .addInput('Warp名称', '', `${pl_.name} 创建的Warp`)
+    .addInput('X坐标', strX, strX)
+    .addInput('Y坐标', strY, strY)
+    .addInput('Z坐标', strZ, strZ)
+    .addDropdown('维度', ['主世界', '地狱', '末地'], dimId_)
+    .addInput('Warp简介');
   pl_.sendForm(form, (pl, data) => {
-    if (data && data[0]) {
-      pl.tell(`${Green}创建成功！`);
+    if (data) {
+      const [name, x, y, z, dimId, desc] = data;
+
+      if (!name) {
+        pl.tell(`${Red}请输入合法内容`);
+        return;
+      }
+
+      const pos = {
+        x: x ? Number(x) : x_,
+        y: y ? Number(y) : y_,
+        z: z ? Number(z) : z_,
+        dimId,
+      };
+      const obj = getWarpObj(pl, pos, name, desc);
+
       const warps = getWarpConf();
-      warps.push(getWarpObj(pl, data[0]));
+      warps.push(obj);
       setWarpConf(warps);
+
+      pl.tell(
+        `${Green}创建Warp ${MinecoinGold}${name} ${Green}成功！\n` +
+          `坐标：${formatPos(pos)}`
+      );
     } else {
       pl.tell(`${Red}操作取消`);
     }
@@ -128,7 +157,35 @@ function confirmBox(pl, tip, callback) {
   );
 }
 
-function deleteWarp(pl_) {
+function compareObject(obj1, obj2) {
+  return JSON.stringify(obj1) === JSON.stringify(obj2);
+}
+
+function deleteWarp(pl, warpObj) {
+  const { name, pos } = warpObj;
+  confirmBox(
+    pl,
+    `真的要删除Warp ${Bold}${MinecoinGold}${name}${Clear}` +
+      `(${formatPos(pos)}${Clear}) 吗？`,
+    () => {
+      const conf = getWarpConf();
+      const index = conf.findIndex((x) => compareObject(x, warpObj));
+      if (index === -1) {
+        pl.tell(`${Red}Warp不存在！`);
+        return;
+      }
+      conf.splice(index, 1);
+      setWarpConf(conf);
+
+      pl.tell(
+        `${Green}已删除Warp ${MinecoinGold}${name}\n` +
+          `${Green}坐标： ${formatPos(pos)}`
+      );
+    }
+  );
+}
+
+function deleteWarpForm(pl_) {
   const form = mc
     .newSimpleForm()
     .setTitle('删除Warp')
@@ -142,85 +199,9 @@ function deleteWarp(pl_) {
   pl_.sendForm(addWarpButton(form, playerWarps), (pl, id) => {
     if (id !== undefined && id !== null) {
       const warp = playerWarps[id];
-      const { name, pos } = warp;
-      confirmBox(
-        pl,
-        `真的要删除Warp ${Bold}${MinecoinGold}${name}${Clear}` +
-          `(${formatPos(pos)}${Clear}) 吗？`,
-        () => {
-          const conf = getWarpConf();
-          conf.splice(conf.findIndex((x) => x === warp));
-          setWarpConf(conf);
-          pl.tell(`${Green}删除成功！`);
-        }
-      );
+      deleteWarp(pl, warp);
     }
   });
-}
-
-function clearAlwaysDisplayTask(pl) {
-  const { xuid } = pl;
-  if (!alwaysDisplayTasks.get(xuid)) {
-    pl.tell(`${Red}没有导航进行中`);
-    return;
-  }
-
-  clearInterval(alwaysDisplayTasks.get(xuid));
-  alwaysDisplayTasks.delete(xuid);
-  pl.tell(`${Green}本次导航完成~欢迎下次使用~`, 5);
-}
-
-function newAlwaysDisplayTask(pl_, warp) {
-  function formatXZPos(x, z) {
-    return `${Green}${x.toFixed()} ${Red}~ ${Aqua}${z.toFixed()}`;
-  }
-
-  const { xuid } = pl_;
-  if (alwaysDisplayTasks.get(xuid)) {
-    pl_.tell(`${Red}已有导航正在进行中，请先结束`);
-    return;
-  }
-
-  function task() {
-    const pl = mc.getPlayer(xuid);
-    const {
-      pos: { x, y, z },
-    } = pl;
-    const { pos, name } = warp;
-    const { x: dx, y: dy, z: dz, dimId } = pos;
-    const distance = Math.sqrt(
-      (x - dx) * (x - dx) + (y - dy) * (y - dy) + (z - dz) * (z - dz)
-    ).toFixed(2);
-
-    if (distance <= 3) {
-      clearAlwaysDisplayTask(pl);
-      return;
-    }
-
-    let msg =
-      `${Green}${name}${Clear} | ` +
-      `${MinecoinGold}目标位置：${formatPos(pos)}${Clear} | `;
-    if (pl_.pos.dimid !== dimId) {
-      msg += (() => {
-        switch (dimId) {
-          case 0:
-            return `${MinecoinGold}地狱坐标：${formatXZPos(dx / 8, dz / 8)}`;
-          case 1:
-            return `${MinecoinGold}主世界坐标：${formatXZPos(dx * 8, dz * 8)}`;
-          default:
-            return `${Red}维度不匹配`;
-        }
-      })();
-    } else {
-      msg += `${MinecoinGold}距离 ${Green}${distance} ${MinecoinGold}方块`;
-    }
-    pl.tell(msg, 5);
-  }
-
-  pl_.tell(`${Green}开始为您导航~`);
-  pl_.tell(`${Green}开始为您导航~`, 5);
-  const taskId = setInterval(task, 500);
-  alwaysDisplayTasks.set(xuid, taskId);
 }
 
 function warpList(pl) {
@@ -230,27 +211,44 @@ function warpList(pl) {
       pos,
       name,
       date,
+      desc,
     } = warp;
-    const form = mc
+
+    const isOwner = pl_.xuid === xuid || pl.permLevel > 0;
+
+    let form = mc
       .newSimpleForm()
       .setTitle('Warp详情')
       .setContent(
-        `- ${DarkGreen}名称：${Bold}${Green}${name}${Clear}\n` +
-          `- ${DarkGreen}创建者：` +
+        `- ${DarkGreen}名称： ${Bold}${Green}${name}${Clear}\n` +
+          `- ${DarkGreen}创建者： ` +
           `${Bold}${Green}${playerName}${Clear}${Green}（${xuid}）${Clear}\n` +
-          `- ${DarkGreen}坐标：${Bold}${formatPos(pos)}${Clear}\n` +
-          `- ${DarkGreen}创建日期：` +
-          `${Bold}${Green}${formatDate(new Date(date))}${Clear}\n`
+          `- ${DarkGreen}坐标： ${Bold}${formatPos(pos)}${Clear}\n` +
+          `- ${DarkGreen}创建日期： ` +
+          `${Bold}${Green}${formatDate(new Date(date))}${Clear}\n` +
+          `- ${DarkGreen}简介： ${Bold}${Green}${desc || '无'}`
       )
-      .addButton(`${Green}导航`)
-      .addButton(`${Green}返回Warp列表`);
+      .addButton(`${DarkGreen}导航`);
+
+    if (isOwner) form = form.addButton(`${DarkGreen}删除`);
+    form = form.addButton(`${DarkGreen}返回Warp列表`);
+
     pl_.sendForm(form, (pl__, id) => {
       if (id !== undefined && id !== null) {
         switch (id) {
-          case 0:
-            newAlwaysDisplayTask(pl__, warp);
+          case 0: {
+            const { xuid: xuidP } = pl__;
+            if (hasNavigationTask(xuidP)) clearNavigationTask(xuidP);
+            newNavigationTask(xuidP, warp);
             break;
+          }
           case 1:
+            if (isOwner) {
+              deleteWarp(pl, warp);
+              break;
+            }
+          // fallthrough
+          case 2:
             warpList(pl__);
             break;
           default:
@@ -286,10 +284,10 @@ function warpManage(pl_) {
             addWarp(pl);
             break;
           case 1:
-            deleteWarp(pl);
+            deleteWarpForm(pl);
             break;
           case 2:
-            clearAlwaysDisplayTask(pl);
+            clearNavigationTask(pl.xuid);
             break;
           default:
         }
@@ -298,9 +296,7 @@ function warpManage(pl_) {
   );
 }
 
-mc.listen('onLeft', (pl) => clearAlwaysDisplayTask(pl));
-
-function registerManageCmd() {
+(() => {
   const cmd = mc.newCommand('warpmanage', '管理Warp', PermType.Any);
   cmd.setAlias('warpm');
 
@@ -315,9 +311,9 @@ function registerManageCmd() {
 
   cmd.overload();
   cmd.setup();
-}
+})();
 
-function registerListCmd() {
+(() => {
   const cmd = mc.newCommand('warplist', '查看Warp', PermType.Any);
   cmd.setAlias('warp');
 
@@ -332,12 +328,9 @@ function registerListCmd() {
 
   cmd.overload();
   cmd.setup();
-}
+})();
 
 (() => {
-  registerManageCmd();
-  registerListCmd();
-
   const oldConfDir = `plugins/EveryoneWrap`;
   const oldConfPath = `${oldConfDir}/warps.json`;
 
@@ -348,7 +341,7 @@ function registerListCmd() {
   }
 })();
 
-ll.registerPlugin(pluginName, '公共坐标点', [0, 1, 4], {
+ll.registerPlugin(pluginName, '公共坐标点', [0, 2, 0], {
   Author: 'student_2333',
   License: 'Apache-2.0',
 });

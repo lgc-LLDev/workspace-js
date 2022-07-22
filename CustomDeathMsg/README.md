@@ -29,7 +29,7 @@
 - `player`、`source`的属性参考[玩家对象 API](https://docs.litebds.com/zh_CN/Development/GameAPI/Player.html#%E7%8E%A9%E5%AE%B6%E5%AF%B9%E8%B1%A1-%E5%B1%9E%E6%80%A7)、[实体对象 API](https://docs.litebds.com/zh_CN/Development/GameAPI/Entity.html#%E5%AE%9E%E4%BD%93%E5%AF%B9%E8%B1%A1-%E5%B1%9E%E6%80%A7)
 - 当提示文本格式化后为空，则会再换一条提示输出
   - 所以可以搞骚操作，比如`` ${player.permLevel >= 1 ? `我超，OP ${player.name} 暴毙了，快来嘲笑他（` : ''} ``
-  - 但是至少要留一条必定会输出的，避免bug
+  - 但是至少要留一条必定会输出的，避免 bug
 
 ```jsonc
 {
@@ -40,6 +40,24 @@
   "hasSource": ["${player.name} 被 ${source.name} 裁决了"]
 }
 ```
+
+## 联系我
+
+QQ：3076823485  
+吹水群：[1105946125](https://jq.qq.com/?_wv=1027&k=Z3n1MpEp)  
+邮箱：<lgc2333@126.com>
+
+## 赞助
+
+感谢大家的赞助！你们的赞助将是我继续创作的动力！
+
+- [爱发电](https://afdian.net/@lgc2333)
+- <details>
+    <summary>赞助二维码（点击展开）</summary>
+
+  ![讨饭](https://raw.githubusercontents.com/lgc2333/ShigureBotMenu/master/src/imgs/sponsor.png)
+
+  </details>
 
 ## 更新日志
 

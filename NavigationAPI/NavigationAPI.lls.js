@@ -37,15 +37,27 @@ function formatPos(pos) {
  */
 function clearNavigationTask(xuid) {
   const pl = mc.getPlayer(xuid);
+  const taskId = tasks.get(xuid);
 
-  if (!tasks.get(xuid)) {
+  if (!taskId) {
     pl.tell(`${Red}没有导航进行中`);
-    return;
+    return false;
   }
 
-  clearInterval(tasks.get(xuid));
+  clearInterval(taskId);
   tasks.delete(xuid);
   pl.tell(`${Green}本次导航完成~欢迎下次使用~`, 5);
+  return true;
+}
+
+/**
+ * 获取玩家是否正在导航中
+ *
+ * @param {String} xuid 玩家Xuid
+ * @returns {Boolean} 玩家导航状态 true为正在导航
+ */
+function hasNavigationTask(xuid) {
+  return !!tasks.get(xuid); // to boolean
 }
 
 /**
@@ -73,7 +85,7 @@ function newNavigationTask(xuid, warp) {
     return `${Green}${x.toFixed()} ${Red}~ ${Aqua}${z.toFixed()}`;
   }
 
-  if (tasks.get(xuid)) {
+  if (hasNavigationTask(xuid)) {
     tmpPl.tell(`${Red}已有导航正在进行中，请先结束`);
     return false;
   }
@@ -81,10 +93,10 @@ function newNavigationTask(xuid, warp) {
   function task() {
     const pl = mc.getPlayer(xuid);
     const {
-      pos: { x, y, z },
+      pos: { x, y, z, dimid: dimId },
     } = pl;
     const { pos, name } = warp;
-    const { x: dx, y: dy, z: dz, dimId } = pos;
+    const { x: dx, y: dy, z: dz, dimId: dDim } = pos;
     const distance = Math.sqrt(
       (x - dx) * (x - dx) + (y - dy) * (y - dy) + (z - dz) * (z - dz)
     ).toFixed(2);
@@ -92,20 +104,18 @@ function newNavigationTask(xuid, warp) {
     let msg =
       `${Green}${name}${Clear} | ` +
       `${MinecoinGold}目标位置：${formatPos(pos)}${Clear} | `;
-    if (pl.pos.dimid !== dimId) {
+    if (dimId !== dDim) {
       msg += (() => {
-        switch (dimId) {
-          case 0:
-            return `${MinecoinGold}地狱坐标：${formatXZPos(dx / 8, dz / 8)}`;
-          case 1:
-            return `${MinecoinGold}主世界坐标：${formatXZPos(dx * 8, dz * 8)}`;
-          default:
-            return `${Red}维度不匹配`;
-        }
+        if (dimId === 2 || dDim === 2) return `${Red}维度不匹配`;
+        if (dDim === 0)
+          return `${MinecoinGold}主世界坐标：${formatXZPos(dx * 8, dz * 8)}`;
+        if (dDim === 1)
+          return `${MinecoinGold}地狱坐标：${formatXZPos(dx / 8, dz / 8)}`;
+        return `${Red}非法导航`;
       })();
     } else {
       if (distance <= 3) {
-        clearNavigationTask(pl);
+        clearNavigationTask(pl.xuid);
         return;
       }
 
@@ -124,11 +134,13 @@ function newNavigationTask(xuid, warp) {
 mc.listen('onLeft', (pl) => clearNavigationTask(pl.xuid));
 
 (() => {
-  const cmd = mc.newCommand('stopnavigation', '停止导航', PermType.Any);
+  const cmd = mc.newCommand('stopnav', '停止导航', PermType.Any);
 
   cmd.setCallback((_, origin, out) => {
     if (!origin.player) {
-      out.error('该命令只能由玩家执行');
+      out.error(
+        '该指令只能由玩家执行，请使用execute命令模拟目标玩家执行该指令'
+      );
       return false;
     }
     return clearNavigationTask(origin.player.xuid);
@@ -140,8 +152,9 @@ mc.listen('onLeft', (pl) => clearNavigationTask(pl.xuid));
 
 ll.export(newNavigationTask, `${exportNamespace}_newTask`);
 ll.export(clearNavigationTask, `${exportNamespace}_clearTask`);
+ll.export(hasNavigationTask, `${exportNamespace}_hasTask`);
 
-ll.registerPlugin(pluginName, '导航API', [0, 1, 0], {
+ll.registerPlugin(pluginName, '导航API', [0, 1, 1], {
   Author: 'student_2333',
   License: 'Apache-2.0',
 });

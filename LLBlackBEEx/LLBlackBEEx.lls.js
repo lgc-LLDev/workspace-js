@@ -636,10 +636,10 @@ logger.info(
   `                    插件已装载！当前版本：${pluginVersion.join('.')}`
 );
 logger.info(
-  `作者： student_2333                         开源证书：      Apache-2.0`
+  `插件作者： student_2333                     开源证书：      Apache-2.0`
 );
 logger.info(
-  `原作者：  yqs112358                         发布平台：MineBBS & Github`
+  `原作者：      yqs112358                     发布平台：MineBBS & Github`
 );
 logger.info(
   `开源地址：https://github.com/lgc2333/LLSEPlugins/tree/main/${pluginName}`
