@@ -44,7 +44,7 @@
 
 感谢 Tech Sky City 服务器腐竹的支持和玩家的试用与反馈！  
 TSC 是一个 1.18.2 基岩版的生电服务器  
-安装有 Trapdoor，FakePlayer, BETweaker 等插件  
+安装有 Trapdoor，FakePlayer 等插件  
 服务器规则原汁原味，死亡掉落、没有传送指令……  
 如果你有兴趣想加入他们，点击[这里](https://jq.qq.com/?_wv=1027&k=p2ke7c5F)
 
