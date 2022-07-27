@@ -19,7 +19,7 @@
 
 ## 配置文件
 
-插件配置文件位于`BDS根目录/plugins/StuSign/config.json`（插件加载成功后自动生成）  
+插件配置文件位于`BDS根目录/plugins/CustomDeathMsg/config.json`（插件加载成功后自动生成）  
 请根据下面 json 中的注释修改配置文件
 
 ### 配置中变量格式规范
