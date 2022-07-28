@@ -5,7 +5,7 @@
 
 const pluginName = 'ItemHitokoto';
 const pluginDescription = '给你手中的物品命名为一条随机一言';
-const pluginVersion = [0, 1, 0];
+const pluginVersion = [0, 1, 1];
 
 const { Red, Green, Clear, Aqua, Gray, White } = Format;
 const hitoTypes = new Map([
@@ -39,6 +39,7 @@ function iterToArr(it) {
 
 (() => {
   const cmd = mc.newCommand('itemhitokoto', pluginDescription, PermType.Any);
+  cmd.setAlias('ithito');
   cmd.optional('type', ParamType.RawText);
   cmd.overload(['type']);
   cmd.setCallback((_, origin, output, result) => {
