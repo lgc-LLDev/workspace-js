@@ -1,8 +1,8 @@
-/* global ll mc Format PermType */
+/* global lxl mc Format */
 // LiteLoaderScript Dev Helper
 /// <reference path="E:\Coding\bds\.vscode\LLSEDevHelper/Library/JS/Api.js" />
 
-const pluginName = 'NavigationAPI';
+// const pluginName = 'NavigationAPI';
 const exportNamespace = 'NavAPI';
 const tasks = new Map();
 const { Red, Green, Aqua, White, LightPurple, Clear, MinecoinGold } = Format;
@@ -135,28 +135,8 @@ function newNavigationTask(xuid, warp) {
 
 mc.listen('onLeft', (pl) => clearNavigationTask(pl.xuid));
 
-(() => {
-  const cmd = mc.newCommand('stopnav', '停止导航', PermType.Any);
+mc.regPlayerCmd('stopnav', '停止导航', (pl) => clearNavigationTask(pl.xuid));
 
-  cmd.setCallback((_, origin, out) => {
-    if (!origin.player) {
-      out.error(
-        '该指令只能由玩家执行，请使用execute命令模拟目标玩家执行该指令'
-      );
-      return false;
-    }
-    return clearNavigationTask(origin.player.xuid);
-  });
-
-  cmd.overload();
-  cmd.setup();
-})();
-
-ll.export(newNavigationTask, `${exportNamespace}_newTask`);
-ll.export(clearNavigationTask, `${exportNamespace}_clearTask`);
-ll.export(hasNavigationTask, `${exportNamespace}_hasTask`);
-
-ll.registerPlugin(pluginName, '导航API', [0, 1, 2], {
-  Author: 'student_2333',
-  License: 'Apache-2.0',
-});
+lxl.export(newNavigationTask, `${exportNamespace}_newTask`);
+lxl.export(clearNavigationTask, `${exportNamespace}_clearTask`);
+lxl.export(hasNavigationTask, `${exportNamespace}_hasTask`);

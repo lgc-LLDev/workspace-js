@@ -128,7 +128,12 @@ QQ：3076823485
 
 ## 更新日志
 
+**如果是自动下载的依赖，请删除`plugins/lib/NavigationAPI.lls.js`文件来更新！（旧版请删除`plugins/lib/NavigationAPI_OldLXL.lls.js`）**
+
 - 0.1.1
   - 修复了在末地时显示坐标换算的 Bug
   - 修复玩家到地方不能结束导航
   - 修改了指令`stopnavigation` -> `stopnav`
+- 0.1.2
+  - 修复坐标换算显示错误的 Bug
+  - 适配旧版 lxl

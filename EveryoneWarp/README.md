@@ -36,6 +36,10 @@
 插件前置我已经上传到我自己的服务器，加载时即可**自动安装**  
 如遇安装失败请移步 [NavigationAPI](../NavigationAPI) 自行下载安装
 
+## 更新[`NavigationAPI`](../NavigationAPI)的方法
+
+如果是自动下载的依赖，请删除`plugins/lib/NavigationAPI.lls.js`文件来更新！（旧版请删除`plugins/lib/NavigationAPI_OldLXL.lls.js`）
+
 ## 配置文件
 
 插件没有配置文件
@@ -80,10 +84,13 @@ QQ：3076823485
   - 修复显示的日期少了一个月的 bug
 - 0.2.0
   - 将导航功能独立出一个前置插件[`NavigationAPI`](../NavigationAPI)
-    - 修复了在末地时显示坐标换算的Bug
+    - 修复了在末地时显示坐标换算的 Bug
   - 加入了 Warp 的简介，创建时可以设置
   - Warp 创建时可以自定义坐标、维度了
   - 更改部分提示文本
   - 修复删除 Warp 时的某些 Bug
   - Warp 详情界面加入删除按钮（只有该 Warp 的创建者和 OP 会显示）
   - 现在无需停止导航即可建立另一个导航
+  - **2022.7.28 更新**
+    - 适配旧版 lxl
+    - [`NavigationAPI` Bug 修复](../NavigationAPI/README.md#更新日志)
