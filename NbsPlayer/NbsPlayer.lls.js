@@ -244,10 +244,10 @@ function nbsForm(player) {
   });
 
   const search = (param) => {
-    const paramL = param.toLowerCase();
+    const paramL = param.toLowerCase().replace(' ', '');
     const result = [];
     musics.forEach((v) => {
-      if (v.toLowerCase().includes(paramL)) result.push(v);
+      if (v.toLowerCase().replace(' ', '').includes(paramL)) result.push(v);
     });
 
     let form = mc.newSimpleForm();
