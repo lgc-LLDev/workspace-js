@@ -10,7 +10,19 @@ const pluginCachePath = `${pluginDataPath}cache/`;
 if (!File.exists(pluginDataPath)) File.mkdir(pluginDataPath);
 if (!File.exists(pluginCachePath)) File.mkdir(pluginCachePath);
 
-const { Red, White, Aqua, Yellow, Green, Gray, Gold } = Format;
+const {
+  Red,
+  White,
+  Aqua,
+  Yellow,
+  Green,
+  Gray,
+  Gold,
+  DarkAqua,
+  LightPurple,
+  DarkGreen,
+  DarkBlue,
+} = Format;
 const instrumentMap = new Map([
   [0, 'note.harp'],
   [1, 'note.bassattack'],
@@ -29,6 +41,7 @@ const instrumentMap = new Map([
   [14, 'note.banjo'],
   [15, 'note.pling'],
 ]);
+const instrumentMaxID = instrumentMap.size - 1;
 const keyMap = new Map();
 
 for (let i = 0; i < 46; i += 1) {
@@ -71,11 +84,20 @@ function convertNbs(name, callback) {
   );
 }
 
+/**
+ * @param {Player} player
+ * @returns {Boolean}
+ */
 function stopPlay(xuid) {
   const taskId = playTasks.get(xuid);
   if (taskId) {
     clearInterval(taskId);
-    return playTasks.delete(xuid);
+    const ret = playTasks.delete(xuid);
+
+    const pl = mc.getPlayer(xuid);
+    if (pl) pl.tell(`${Red}■ ${LightPurple}NbsPlayer\n\n`, 4);
+
+    return ret;
   }
   return false;
 }
@@ -104,7 +126,7 @@ function startPlay(player, nbsName) {
   const playingTask = playTasks.get(xuid);
   if (playingTask) stopPlay(xuid);
 
-  player.tell(`${Green}解析nbs文件……`, 5);
+  player.tell(`${Green}解析nbs文件……`, 4);
 
   convertNbs(nbsName, (ok, ret) => {
     if (!ok) {
@@ -124,7 +146,25 @@ function startPlay(player, nbsName) {
         tempo,
       },
       notes,
+      instruments,
+      layers,
     } = ret;
+
+    const instrumentPitchMap = new Map();
+    const instrumentMapEx = new Map();
+    instrumentMap.forEach((v, k) => instrumentMapEx.set(k, v));
+    instruments.forEach((v) => {
+      const { id, name: insName, pitch } = v;
+      const insId = instrumentMaxID + 1 + id;
+      instrumentMapEx.set(insId, insName);
+      instrumentPitchMap.set(insId, pitch - 45);
+    });
+
+    const layerVolMap = new Map();
+    layers.forEach((v) => {
+      const { id, volume } = v;
+      layerVolMap.set(id, volume);
+    });
 
     let songDisplayName = Aqua;
     if (name) {
@@ -151,7 +191,6 @@ function startPlay(player, nbsName) {
       for (;;) {
         if (noteAndTime.length === 0 || !pl) {
           stopPlay(xuid);
-          pl.tell('', 5);
           return;
         }
         const { time, note } = noteAndTime[0];
@@ -166,24 +205,147 @@ function startPlay(player, nbsName) {
       // } = pl;
       willPlay.forEach((note) => {
         // log(note);
-        const { instrument, velocity, key } = note;
+        const { instrument, velocity, key, pitch, layer } = note;
+
+        const insPitch = instrumentPitchMap.get(instrument) || 0;
+        const finalPitch = key + pitch + insPitch;
+
+        const layerVol = layerVolMap.get(layer) || 100;
+        const finalVol = (velocity * (layerVol / 100)) / 100;
+
         const cmd =
           `execute "${realName}" ~~~ ` +
-          `playsound ${instrumentMap.get(instrument)} @s ~~~ ` +
-          `${velocity / 100} ${keyMap.get(key)}`;
+          `playsound ${instrumentMapEx.get(instrument)} @s ~ ~1.65 ~ ` +
+          `${finalVol} ${keyMap.get(finalPitch)}`;
         // log(cmd);
         mc.runcmdEx(cmd);
       });
       pl.tell(
-        `${songDisplayName} ${Gray}| ` +
-          `${Yellow}${formatMsTime(timeSpent)} ${White}- ` +
+        `${Green}▶ ${LightPurple}NbsPlayer\n` +
+          `${songDisplayName}\n` +
+          `${Yellow}${formatMsTime(timeSpent)} ${Gray}| ` +
           `${Gold}${totalLengthStr}`,
-        5
+        4
       );
     };
 
     playTasks.set(xuid, setInterval(task, 0));
   });
+}
+
+/**
+ * @param {Player} player
+ */
+function nbsForm(player) {
+  const pageMax = 15;
+  const musics = [];
+  File.getFilesList(pluginDataPath).forEach((v) => {
+    if (v.toLowerCase().endsWith('.nbs')) musics.push(v);
+  });
+
+  const search = (param) => {
+    const paramL = param.toLowerCase();
+    const result = [];
+    musics.forEach((v) => {
+      if (v.toLowerCase().includes(paramL)) result.push(v);
+    });
+
+    let form = mc.newSimpleForm();
+    form = form
+      .setTitle(`${Aqua}${pluginName}`)
+      .setContent(
+        `${Green}搜寻到 ${Yellow}${result.length} ${Green}条` +
+          `关于 ${Aqua}${param} ${Green}的结果`
+      );
+    result.forEach((v) => {
+      form = form.addButton(`${DarkAqua}${v}`);
+    });
+    player.sendForm(form, (_, i) => {
+      if (i !== null && i !== undefined) {
+        startPlay(player, result[i]);
+      }
+    });
+  };
+
+  const sendForm = (page) => {
+    const maxPage = Math.ceil(musics.length / pageMax);
+    const index = pageMax * (page - 1);
+    const pageContent = musics.slice(index, index + pageMax);
+
+    let pageUp = false;
+    let pageDown = false;
+    let form = mc.newSimpleForm();
+    form
+      .setTitle(`${Aqua}${pluginName}`)
+      .setContent(`${Green}页数 ${Yellow}${page} ${White}/ ${Gold}${maxPage}`)
+      .addButton(`${DarkBlue}搜索`)
+      .addButton(`${DarkBlue}跳页`);
+    if (page > 1) {
+      form = form.addButton(`${DarkGreen}<- 上一页`);
+      pageUp = true;
+    }
+    pageContent.forEach((v) => {
+      form = form.addButton(`${DarkAqua}${v}`);
+    });
+    if (page < maxPage) {
+      form = form.addButton(`${DarkGreen}下一页 ->`);
+      pageDown = true;
+    }
+
+    player.sendForm(form, (_, i) => {
+      if (i !== null && i !== undefined) {
+        if (i === 0) {
+          const searchForm = mc
+            .newCustomForm()
+            .setTitle(`${Aqua}${pluginName}`)
+            .addInput('请输入搜索内容');
+          player.sendForm(searchForm, (__, data) => {
+            if (data) {
+              let [param] = data;
+              param = param.trim();
+              if (param) {
+                search(param);
+              } else player.tell(`${Red}请输入搜索内容`);
+            } else sendForm(page);
+          });
+          return;
+        }
+
+        if (i === 1) {
+          const toPageForm = mc
+            .newCustomForm()
+            .setTitle(`${Aqua}${pluginName}`)
+            .addSlider('请选择跳转到的页数', 1, maxPage);
+          player.sendForm(toPageForm, (__, data) => {
+            if (data) sendForm(data[0]);
+            else sendForm(page);
+          });
+          return;
+        }
+
+        let fIndex = i - 2;
+        if (pageUp) {
+          if (fIndex === 0) {
+            sendForm(page - 1);
+            return;
+          }
+
+          fIndex -= 1;
+        }
+
+        if (pageDown) {
+          if (fIndex === pageMax) {
+            sendForm(page + 1);
+            return;
+          }
+        }
+
+        startPlay(player, pageContent[fIndex]);
+      }
+    });
+  };
+
+  sendForm(1);
 }
 
 (() => {
@@ -196,7 +358,7 @@ function startPlay(player, nbsName) {
       out.error('该命令只能由玩家执行');
       return false;
     }
-    startPlay(player, 'Fix You.nbs');
+    nbsForm(player);
     return true;
   });
 
