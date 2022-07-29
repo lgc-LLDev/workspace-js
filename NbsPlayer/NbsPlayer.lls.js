@@ -1,4 +1,4 @@
-/* global ll mc system Format PermType */
+/* global ll mc system Format PermType logger */
 // LiteLoaderScript Dev Helper
 /// <reference path="E:\Coding\bds\.vscode\LLSEDevHelper/Library/JS/Api.js" />
 
@@ -53,7 +53,7 @@ const playTasks = new Map();
 
 /**
  * @param {String} name
- * @param {(ok:Boolean,result:Object|undefined)} callback
+ * @param {(ok:Boolean,resultOrError:String|Object|undefined)} callback
  * @returns
  */
 function convertNbs(name, callback) {
@@ -61,25 +61,35 @@ function convertNbs(name, callback) {
   const nbsCachePath = `${pluginCachePath}${name}.json`;
   return system.newProcess(
     `${nbsConvertorPath} -f "${nbsPath}" -o "${nbsCachePath}"`,
-    (code) => {
+    (code, returns) => {
       if (!code === 0) {
-        callback(false);
+        logger.error(`转换nbs文件出错\n${returns}`);
+        callback(false, '转换nbs文件出错');
         return;
       }
 
-      const ok = new File(nbsCachePath, File.ReadMode).readAll((ret) => {
+      let file;
+      try {
+        file = new File(nbsCachePath, File.ReadMode);
+      } catch {
+        callback(false, '打开文件失败');
+        return;
+      }
+      const ok = file.readAll((ret) => {
         let j;
         try {
           j = JSON.parse(ret);
         } catch {
-          callback(false);
+          callback(false, '解析转换后Json失败');
           return;
         }
 
+        file.close();
+        File.delete(nbsCachePath);
         callback(true, j);
       });
 
-      if (!ok) callback(false);
+      if (!ok) callback(false, '读取文件失败');
     }
   );
 }
@@ -130,10 +140,7 @@ function startPlay(player, nbsName) {
 
   convertNbs(nbsName, (ok, ret) => {
     if (!ok) {
-      player.tell(
-        `${Red}文件转换出错！\n` +
-          `错误原因可能为： 找不到文件 / nbs文件转换失败 / 转换后文件解析失败`
-      );
+      player.tell(`${Red}文件转换出错！\n错误原因： ${ret}`);
       return;
     }
 
