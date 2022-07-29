@@ -277,7 +277,10 @@ function nbsForm(player) {
     let form = mc.newSimpleForm();
     form
       .setTitle(`${Aqua}${pluginName}`)
-      .setContent(`${Green}页数 ${Yellow}${page} ${White}/ ${Gold}${maxPage}`)
+      .setContent(
+        `${Green}页数 ${Yellow}${page} ${White}/ ${Gold}${maxPage} ${Gray}| ` +
+          `${Green}总数 ${Yellow}${musics.length}`
+      )
       .addButton(`${DarkBlue}搜索`)
       .addButton(`${DarkBlue}跳页`);
     if (page > 1) {
@@ -315,7 +318,7 @@ function nbsForm(player) {
           const toPageForm = mc
             .newCustomForm()
             .setTitle(`${Aqua}${pluginName}`)
-            .addSlider('请选择跳转到的页数', 1, maxPage);
+            .addSlider('请选择跳转到的页数', 1, maxPage, 1, page);
           player.sendForm(toPageForm, (__, data) => {
             if (data) sendForm(data[0]);
             else sendForm(page);
