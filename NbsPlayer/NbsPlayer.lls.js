@@ -68,28 +68,25 @@ function convertNbs(name, callback) {
         return;
       }
 
-      let file;
-      try {
-        file = new File(nbsCachePath, File.ReadMode);
-      } catch {
-        callback(false, '打开文件失败');
-        return;
-      }
-      const ok = file.readAll((ret) => {
-        let j;
-        try {
-          j = JSON.parse(ret);
-        } catch {
-          callback(false, '解析转换后Json失败');
-          return;
-        }
+      Promise.resolve()
+        .then(() => File.readFrom(nbsCachePath))
+        .then((t) => {
+          if (!t) {
+            callback(false, '读取文件失败');
+            return;
+          }
 
-        file.close();
-        File.delete(nbsCachePath);
-        callback(true, j);
-      });
+          let j;
+          try {
+            j = JSON.parse(t);
+          } catch {
+            callback(false, '解析转换后Json失败');
+            return;
+          }
 
-      if (!ok) callback(false, '读取文件失败');
+          File.delete(nbsCachePath);
+          callback(true, j);
+        });
     }
   );
 }
@@ -188,18 +185,24 @@ function startPlay(player, nbsName) {
       time: tickToMs(v.tick, tempo),
       note: v,
     }));
+    const totalNotes = noteAndTime.length;
     const startTime = Date.now();
 
     const task = () => {
-      const willPlay = [];
+      let notesRemain = noteAndTime.length;
       const pl = mc.getPlayer(xuid);
+      if (notesRemain === 0 || !pl) {
+        stopPlay(xuid);
+        return;
+      }
+
       const timeSpent = Date.now() - startTime;
+      const willPlay = [];
 
       for (;;) {
-        if (noteAndTime.length === 0 || !pl) {
-          stopPlay(xuid);
-          return;
-        }
+        notesRemain = noteAndTime.length;
+        if (notesRemain === 0) break;
+
         const { time, note } = noteAndTime[0];
         if (time <= timeSpent) {
           willPlay.push(note);
@@ -227,11 +230,14 @@ function startPlay(player, nbsName) {
         // log(cmd);
         mc.runcmdEx(cmd);
       });
+
+      const timeSpentStr = formatMsTime(timeSpent);
       pl.tell(
         `${Green}▶ ${LightPurple}NbsPlayer\n` +
           `${songDisplayName}\n` +
-          `${Yellow}${formatMsTime(timeSpent)} ${Gray}| ` +
-          `${Gold}${totalLengthStr}`,
+          `${Yellow}${timeSpentStr} ${White}/ ${Gold}${totalLengthStr}` +
+          `${Gray} | ` +
+          `${Yellow}${totalNotes - notesRemain} ${White}/ ${Gold}${totalNotes}`,
         4
       );
     };
@@ -398,7 +404,7 @@ function nbsForm(player) {
 
 mc.listen('onLeft', (pl) => stopPlay(pl.xuid));
 
-ll.registerPlugin(pluginName, '在服务器播放NBS音乐！', [0, 1, 0], {
+ll.registerPlugin(pluginName, '在服务器播放NBS音乐！', [0, 1, 1], {
   Author: 'student_2333',
   License: 'Apache-2.0',
 });

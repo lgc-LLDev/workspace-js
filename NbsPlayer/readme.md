@@ -15,6 +15,7 @@ BDS 中的 NBS 音乐播放器！
 ### 特点
 
 - 支持 单音符/轨道/音色 的音高、音量等设置
+- 支持超过两个八度限制的音符
 - 支持自定义音色
   - 请将自定义音色的名称设置为`playsound`命令可以播放的声音 ID，例：`dig.stone`，支持资源包自定义的音色
 
@@ -33,13 +34,19 @@ BDS 中的 NBS 音乐播放器！
 ![4](readme/4.png)  
 ![5](readme/5.png)
 
+### 演示
+
+<https://www.bilibili.com/video/bv1gT41177sm>
+
+<iframe src="//player.bilibili.com/player.html?aid=471512773&bvid=BV1gT41177sm&cid=789620051&page=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>
+
 ## 安装
 
 请去 [Releases](https://github.com/lgc2333/LLSEPlugins/releases) 下载最新版插件附件，解压到 bds 的插件目录
 
 ## 配置
 
-直接将 nbs 文件放置在插件数据目录即可，注意文件名不要有特殊字符、中文等，否则可能会出错  
+直接将 nbs 文件放置在插件数据目录即可~~，注意文件名不要有特殊字符、中文等，否则可能会出错~~（应该已修复）  
 例图：  
 ![6](readme/6.png)
 
@@ -67,4 +74,7 @@ QQ：3076823485
 
 ## 更新日志
 
-暂无
+- 0.1.1
+  - 修复 nbs 文件名不能为特殊符号或中文的问题
+  - 修复无法播放最后一 tick 的音符的 bug
+  - 加入音符数量显示
