@@ -1,4 +1,4 @@
-/* global ll mc system Format PermType logger */
+/* global ll mc system Format PermType ParamType logger BinaryStream */
 // LiteLoaderScript Dev Helper
 /// <reference path="E:\Coding\bds\.vscode\LLSEDevHelper/Library/JS/Api.js" />
 
@@ -59,7 +59,7 @@ const playTasks = new Map();
 function convertNbs(name, callback) {
   const nbsPath = `${pluginDataPath}${name}`;
   const nbsCachePath = `${pluginCachePath}${name}.json`;
-  return system.newProcess(
+  const ret = system.newProcess(
     `${nbsConvertorPath} -f "${nbsPath}" -o "${nbsCachePath}"`,
     (code, returns) => {
       if (!code === 0) {
@@ -79,16 +79,20 @@ function convertNbs(name, callback) {
           let j;
           try {
             j = JSON.parse(t);
-          } catch {
+          } catch (e) {
+            logger.error(`转换nbs文件出错\n${e.stack}`);
             callback(false, '解析转换后Json失败');
             return;
           }
 
           File.delete(nbsCachePath);
           callback(true, j);
-        });
-    }
+        })
+        .catch((e) => logger.error(`未知错误\n${e.stack}`));
+    },
+    10 * 1000
   );
+  if (!ret) callback(false, '运行NbsConvertor失败');
 }
 
 /**
@@ -125,11 +129,35 @@ function formatMsTime(msTime) {
 }
 
 /**
+ * @param {BinaryStream} bs
+ * @param {String} sound
+ * @param {FloatPos} position
+ * @param {Number} volume
+ * @param {Number} pitch
+ * @returns
+ */
+function getPlaySoundDataPack(bs, sound, position, volume, pitch) {
+  bs.reset();
+
+  bs.writeString(sound);
+
+  // bs.writeVec3(position);
+  bs.writeVarInt(position.x * 8);
+  bs.writeUnsignedVarInt(position.y * 8);
+  bs.writeVarInt(position.z * 8);
+
+  bs.writeFloat(volume);
+  bs.writeFloat(pitch);
+
+  return bs.createPacket(86);
+}
+
+/**
  * @param {Player} player
  * @param {String} nbsName
  */
 function startPlay(player, nbsName) {
-  const { xuid, realName } = player;
+  const { xuid } = player;
   const playingTask = playTasks.get(xuid);
   if (playingTask) stopPlay(xuid);
 
@@ -186,6 +214,9 @@ function startPlay(player, nbsName) {
       note: v,
     }));
     const totalNotes = noteAndTime.length;
+
+    const bs = new BinaryStream();
+
     const startTime = Date.now();
 
     const task = () => {
@@ -223,12 +254,24 @@ function startPlay(player, nbsName) {
         const layerVol = layerVolMap.get(layer) || 100;
         const finalVol = (velocity * (layerVol / 100)) / 100;
 
-        const cmd =
-          `execute "${realName}" ~~~ ` +
-          `playsound ${instrumentMapEx.get(instrument)} @s ~ ~1.65 ~ ` +
-          `${finalVol} ${keyMap.get(finalPitch)}`;
+        const { pos } = pl;
+        pos.y += 0.37;
+
+        pl.sendPacket(
+          getPlaySoundDataPack(
+            bs,
+            instrumentMapEx.get(instrument) || '',
+            pos,
+            finalVol || 0,
+            keyMap.get(finalPitch) || 1
+          )
+        );
+        // const cmd =
+        // `execute "${realName}" ~~~ ` +
+        // `playsound ${instrumentMapEx.get(instrument)} @s ~ ~1.65 ~ ` +
+        // `${finalVol} ${keyMap.get(finalPitch)}`;
         // log(cmd);
-        mc.runcmdEx(cmd);
+        // mc.runcmdEx(cmd);
       });
 
       const timeSpentStr = formatMsTime(timeSpent);
@@ -255,6 +298,17 @@ function nbsForm(player) {
   File.getFilesList(pluginDataPath).forEach((v) => {
     if (v.toLowerCase().endsWith('.nbs')) musics.push(v);
   });
+
+  if (musics.length === 0) {
+    player.sendModalForm(
+      `${Aqua}${pluginName}`,
+      `${Green}插件数据目录内还没有歌曲文件哦！赶快去寻找nbs音乐来播放吧！`,
+      `知道了`,
+      `知道了`,
+      () => {}
+    );
+    return;
+  }
 
   const search = (param) => {
     const paramL = param.toLowerCase().replace(' ', '');
@@ -328,6 +382,17 @@ function nbsForm(player) {
         }
 
         if (i === 1) {
+          if (maxPage < 2) {
+            player.sendModalForm(
+              `${Aqua}${pluginName}`,
+              `${Red}页面总数小于2，无法跳转`,
+              `知道了`,
+              `知道了`,
+              () => sendForm(page)
+            );
+            return;
+          }
+
           const toPageForm = mc
             .newCustomForm()
             .setTitle(`${Aqua}${pluginName}`)
@@ -364,21 +429,79 @@ function nbsForm(player) {
   sendForm(1);
 }
 
+/**
+ * 去两侧引号
+ * @param {String} str
+ */
+function trimQuote(str) {
+  if (str && str.startsWith('"') && str.endsWith('"'))
+    return str.slice(1, str.length - 1);
+  return str;
+}
+
 (() => {
   const cmd = mc.newCommand('nbsplayer', '来首音乐嘛？', PermType.Any);
   cmd.setAlias('nbs');
+  cmd.optional('filename', ParamType.RawText);
+  cmd.overload(['filename']);
 
-  cmd.setCallback((_, origin, out) => {
+  cmd.setCallback((_, origin, out, result) => {
     const { player } = origin;
     if (!player) {
       out.error('该命令只能由玩家执行');
       return false;
     }
+
+    const { filename } = result;
+    if (filename) {
+      const filePath = `${pluginDataPath}${trimQuote(filename)}`;
+      if (!File.exists(filePath)) {
+        out.error('文件不存在！');
+        return false;
+      }
+
+      startPlay(player, trimQuote(filename));
+      return true;
+    }
+
     nbsForm(player);
     return true;
   });
 
-  cmd.overload();
+  cmd.setup();
+})();
+
+(() => {
+  const cmd = mc.newCommand('nbsplay', '管理员播放指令');
+  cmd.mandatory('player', ParamType.Player);
+  cmd.mandatory('filename', ParamType.RawText);
+  cmd.optional('forcePlay', ParamType.Bool);
+  cmd.overload(['player', 'filename', 'forcePlay']);
+
+  cmd.setCallback((_, __, out, result) => {
+    const { player, filename, forcePlay } = result;
+    const filePath = `${pluginDataPath}${trimQuote(filename)}`;
+    if (player.length === 0) {
+      out.error('玩家不在线');
+      return false;
+    }
+
+    if (!File.exists(filePath)) {
+      out.error('文件不存在！');
+      return false;
+    }
+
+    player.forEach((p) => {
+      if (forcePlay || !playTasks.get(p.xuid)) {
+        startPlay(p, filename);
+        out.success(`成功为 ${p.name} 播放 ${filename}`);
+        return;
+      }
+      out.error(`玩家 ${p.name} 正在播放中，操作失败`);
+    });
+    return true;
+  });
+
   cmd.setup();
 })();
 
@@ -402,9 +525,29 @@ function nbsForm(player) {
   cmd.setup();
 })();
 
+(() => {
+  const cmd = mc.newCommand('nbsisplaying', '玩家是否正在播放', PermType.Any);
+
+  cmd.setCallback((_, origin, out) => {
+    const { player } = origin;
+    if (!player) {
+      out.error('该命令只能由玩家执行');
+      return false;
+    }
+
+    if (playTasks.get(player.xuid)) return out.success('true');
+
+    out.error('false');
+    return false;
+  });
+
+  cmd.overload();
+  cmd.setup();
+})();
+
 mc.listen('onLeft', (pl) => stopPlay(pl.xuid));
 
-ll.registerPlugin(pluginName, '在服务器播放NBS音乐！', [0, 1, 1], {
+ll.registerPlugin(pluginName, '在服务器播放NBS音乐！', [0, 2, 0], {
   Author: 'student_2333',
   License: 'Apache-2.0',
 });
