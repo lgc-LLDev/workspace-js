@@ -2,6 +2,8 @@
 
 # GoCQSync
 
+**项目暂停更新，请使用nodejs版ll的用户移步 [QBotForLiteloader](https://github.com/yanhy2000/QBotForLiteloader)**
+
 一个依赖 [GoCQHTTP](https://github.com/Mrs4s/go-cqhttp) 的群服互通插件
 
 ## 介绍
