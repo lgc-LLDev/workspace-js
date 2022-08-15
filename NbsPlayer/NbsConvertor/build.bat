@@ -1,1 +1,0 @@
-poetry run pyinstaller -F __main__.py -n NbsConvertor
