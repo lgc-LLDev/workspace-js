@@ -1,14 +1,16 @@
 /* global ll mc system Format PermType ParamType logger BinaryStream */
 // LiteLoaderScript Dev Helper
-/// <reference path="E:\Coding\bds\.vscode\LLSEDevHelper/Library/JS/Api.js" />
+/// <reference path="C:\Users\Administrator\.vscode\extensions\moxicat.llscripthelper-1.0.1\lib\Library/JS/Api.js" />
+
+import * as fs from 'fs';
+import { fromArrayBuffer, Layer, Song } from '@encode42/nbs.js';
 
 const pluginName = 'NbsPlayer';
 const pluginDataPath = `plugins/${pluginName}/`;
-const nbsConvertorPath = `${pluginDataPath}bin/NbsConvertor.exe`;
-const pluginCachePath = `${pluginDataPath}cache/`;
+// const pluginCachePath = `${pluginDataPath}cache/`;
 
-if (!File.exists(pluginDataPath)) File.mkdir(pluginDataPath);
-if (!File.exists(pluginCachePath)) File.mkdir(pluginCachePath);
+if (!fs.existsSync(pluginDataPath)) fs.mkdirSync(pluginDataPath);
+// if (!fs.existsSync(pluginCachePath)) fs.mkdirSync(pluginCachePath);
 
 const {
   Red,
@@ -23,7 +25,7 @@ const {
   DarkGreen,
   DarkBlue,
 } = Format;
-const instrumentMap = new Map([
+const builtInInstruments = new Map([
   [0, 'note.harp'],
   [1, 'note.bassattack'],
   [2, 'note.bd'],
@@ -41,65 +43,21 @@ const instrumentMap = new Map([
   [14, 'note.banjo'],
   [15, 'note.pling'],
 ]);
-const instrumentMaxID = instrumentMap.size - 1;
-const keyMap = new Map();
-
-for (let i = 0; i < 46; i += 1) {
-  keyMap.set(45 + i, 2 ** (i / 12));
-  keyMap.set(45 - i, 2 ** (-i / 12));
-}
-
 const playTasks = new Map();
 
-/**
- * @param {String} name
- * @param {(ok:Boolean,resultOrError:String|Object|undefined)} callback
- * @returns
- */
-function convertNbs(name, callback) {
+function readNbs(
+  name: string,
+  callback: (ok: boolean, resultOrError: string | Song | undefined) => any
+) {
   const nbsPath = `${pluginDataPath}${name}`;
-  const nbsCachePath = `${pluginCachePath}${name}.json`;
-  const ret = system.newProcess(
-    `${nbsConvertorPath} -f "${nbsPath}" -o "${nbsCachePath}"`,
-    (code, returns) => {
-      if (!code === 0) {
-        logger.error(`转换nbs文件出错\n${returns}`);
-        callback(false, '转换nbs文件出错');
-        return;
-      }
-
-      Promise.resolve()
-        .then(() => File.readFrom(nbsCachePath))
-        .then((t) => {
-          if (!t) {
-            callback(false, '读取文件失败');
-            return;
-          }
-
-          let j;
-          try {
-            j = JSON.parse(t);
-          } catch (e) {
-            logger.error(`转换nbs文件出错\n${e.stack}`);
-            callback(false, '解析转换后Json失败');
-            return;
-          }
-
-          File.delete(nbsCachePath);
-          callback(true, j);
-        })
-        .catch((e) => logger.error(`未知错误\n${e.stack}`));
-    },
-    10 * 1000
-  );
-  if (!ret) callback(false, '运行NbsConvertor失败');
+  fs.readFile(nbsPath, function (err, data) {
+    if (err) callback(false, `打开文件出错\n${err.stack}`);
+    else
+      callback(true, fromArrayBuffer(data.buffer, { ignoreEmptyLayers: true }));
+  });
 }
 
-/**
- * @param {Player} player
- * @returns {Boolean}
- */
-function stopPlay(xuid) {
+function stopPlay(xuid: string): boolean {
   const taskId = playTasks.get(xuid);
   if (taskId) {
     clearInterval(taskId);
@@ -113,13 +71,7 @@ function stopPlay(xuid) {
   return false;
 }
 
-function tickToMs(tick, tempo) {
-  const realTick = tick * (20 / tempo); // 真实Tick数
-  const second = realTick / 20; // 转秒
-  return second * 1000;
-}
-
-function formatMsTime(msTime) {
+function formatMsTime(msTime: number): string {
   const ms = (msTime % 1000).toString()[0];
   const sec = Math.floor((msTime / 1000) % 60)
     .toString()
@@ -128,174 +80,127 @@ function formatMsTime(msTime) {
   return `${min}:${sec}.${ms}`;
 }
 
-/**
- * @param {BinaryStream} bs
- * @param {String} sound
- * @param {FloatPos} position
- * @param {Number} volume
- * @param {Number} pitch
- * @returns
- */
-function getPlaySoundDataPack(bs, sound, position, volume, pitch) {
+function getPlaySoundDataPack(
+  bs: BinaryStream,
+  sound: string,
+  position: FloatPos,
+  volume: number,
+  pitch: number
+): Packet {
   bs.reset();
 
   bs.writeString(sound);
-
-  // bs.writeVec3(position);
-  bs.writeVarInt(position.x * 8);
-  bs.writeUnsignedVarInt(position.y * 8);
-  bs.writeVarInt(position.z * 8);
-
+  bs.writeVec3(position);
   bs.writeFloat(volume);
   bs.writeFloat(pitch);
 
   return bs.createPacket(86);
 }
 
-/**
- * @param {Player} player
- * @param {String} nbsName
- */
-function startPlay(player, nbsName) {
+function startPlay(player: Player, nbsName: string) {
   const { xuid } = player;
   const playingTask = playTasks.get(xuid);
   if (playingTask) stopPlay(xuid);
 
   player.tell(`${Green}解析nbs文件……`, 4);
 
-  convertNbs(nbsName, (ok, ret) => {
+  readNbs(nbsName, (ok, ret) => {
     if (!ok) {
-      player.tell(`${Red}文件转换出错！\n错误原因： ${ret}`);
+      player.tell(`${Red}文件转换出错！\n错误原因： ${ret}`, 0);
       return;
     }
 
+    if (!(ret instanceof Song)) return;
     const {
-      header: {
-        song_length: length,
-        song_name: name,
-        song_author: author,
-        original_author: originAuthor,
-        tempo,
-      },
-      notes,
+      meta: { name, author, originalAuthor },
+      length,
       instruments,
       layers,
+      timePerTick,
     } = ret;
-
-    const instrumentPitchMap = new Map();
-    const instrumentMapEx = new Map();
-    instrumentMap.forEach((v, k) => instrumentMapEx.set(k, v));
-    instruments.forEach((v) => {
-      const { id, name: insName, pitch } = v;
-      const insId = instrumentMaxID + 1 + id;
-      instrumentMapEx.set(insId, insName);
-      instrumentPitchMap.set(insId, pitch - 45);
-    });
-
-    const layerVolMap = new Map();
-    layers.forEach((v) => {
-      const { id, volume } = v;
-      layerVolMap.set(id, volume);
-    });
 
     let songDisplayName = Aqua;
     if (name) {
       songDisplayName += name;
-      const displayAuthor = originAuthor || author;
+      const displayAuthor = originalAuthor || author;
       if (displayAuthor)
         songDisplayName += `${White} - ${Green}${displayAuthor}`;
     } else songDisplayName += nbsName;
 
-    const totalLength = tickToMs(length, tempo);
+    const totalLength = timePerTick * length;
     const totalLengthStr = formatMsTime(totalLength);
+    let totalNotes = 0;
+    layers.forEach((v) => (totalNotes += v.notes.length));
 
-    const noteAndTime = notes.map((v) => ({
-      time: tickToMs(v.tick, tempo),
-      note: v,
-    }));
-    const totalNotes = noteAndTime.length;
-
+    let playedNotes = 0;
     const bs = new BinaryStream();
-
     const startTime = Date.now();
 
     const task = () => {
-      let notesRemain = noteAndTime.length;
       const pl = mc.getPlayer(xuid);
-      if (notesRemain === 0 || !pl) {
+      if (totalNotes - playedNotes === 0 || !pl) {
         stopPlay(xuid);
         return;
       }
 
-      const timeSpent = Date.now() - startTime;
-      const willPlay = [];
+      const willPlay: Array<Packet> = [];
+      layers.forEach((layer: Layer) => {
+        const { notes } = layer;
+        const n = notes.shift();
+        if (n) {
+          const { instrument, velocity, key, pitch: notePitch } = n;
+          const { volume } = layer;
+          const {
+            pitch,
+            builtIn,
+            meta: { name: insName },
+          } = instruments.loaded[instrument];
+          const { pos } = pl;
 
-      for (;;) {
-        notesRemain = noteAndTime.length;
-        if (notesRemain === 0) break;
+          pos.y += 0.37;
+          const finalKey =
+            (pitch || 45) + ((key || 45) - 45) + (pitch || 0) / 100;
 
-        const { time, note } = noteAndTime[0];
-        if (time <= timeSpent) {
-          willPlay.push(note);
-          noteAndTime.shift();
-        } else break;
-      }
+          willPlay.push(
+            getPlaySoundDataPack(
+              bs,
+              (builtIn ? builtInInstruments.get(instrument) : insName) || '',
+              pos,
+              ((velocity || 100) / 100) * (volume / 100),
+              2 ** (finalKey / 12)
+            )
+          );
+        }
+      });
 
       // const {
       //   pos: { x, y, z },
       // } = pl;
-      willPlay.forEach((note) => {
-        // log(note);
-        const { instrument, velocity, key, pitch, layer } = note;
+      willPlay.forEach((p) => pl.sendPacket(p));
 
-        const insPitch = instrumentPitchMap.get(instrument) || 0;
-        const finalPitch = key + pitch + insPitch;
-
-        const layerVol = layerVolMap.get(layer) || 100;
-        const finalVol = (velocity * (layerVol / 100)) / 100;
-
-        const { pos } = pl;
-        pos.y += 0.37;
-
-        pl.sendPacket(
-          getPlaySoundDataPack(
-            bs,
-            instrumentMapEx.get(instrument) || '',
-            pos,
-            finalVol || 0,
-            keyMap.get(finalPitch) || 1
-          )
-        );
-        // const cmd =
-        // `execute "${realName}" ~~~ ` +
-        // `playsound ${instrumentMapEx.get(instrument)} @s ~ ~1.65 ~ ` +
-        // `${finalVol} ${keyMap.get(finalPitch)}`;
-        // log(cmd);
-        // mc.runcmdEx(cmd);
-      });
-
+      const timeSpent = Date.now() - startTime;
       const timeSpentStr = formatMsTime(timeSpent);
       pl.tell(
         `${Green}▶ ${LightPurple}NbsPlayer\n` +
           `${songDisplayName}\n` +
           `${Yellow}${timeSpentStr} ${White}/ ${Gold}${totalLengthStr}` +
           `${Gray} | ` +
-          `${Yellow}${totalNotes - notesRemain} ${White}/ ${Gold}${totalNotes}`,
+          `${Yellow}${playedNotes} ${White}/ ${Gold}${totalNotes}`,
         4
       );
     };
 
-    playTasks.set(xuid, setInterval(task, 0));
+    playTasks.set(xuid, setInterval(task, timePerTick));
   });
 }
 
 /**
  * @param {Player} player
  */
-function nbsForm(player) {
+function nbsForm(player: Player) {
   const pageMax = 15;
-  const musics = [];
-  File.getFilesList(pluginDataPath).forEach((v) => {
+  const musics: Array<string> = [];
+  fs.readdirSync(pluginDataPath).forEach((v) => {
     if (v.toLowerCase().endsWith('.nbs')) musics.push(v);
   });
 
@@ -310,9 +215,9 @@ function nbsForm(player) {
     return;
   }
 
-  const search = (param) => {
+  const search = (param: string) => {
     const paramL = param.toLowerCase().replace(' ', '');
-    const result = [];
+    const result: Array<string> = [];
     musics.forEach((v) => {
       if (v.toLowerCase().replace(' ', '').includes(paramL)) result.push(v);
     });
@@ -334,7 +239,7 @@ function nbsForm(player) {
     });
   };
 
-  const sendForm = (page) => {
+  const sendForm = (page: number) => {
     const maxPage = Math.ceil(musics.length / pageMax);
     const index = pageMax * (page - 1);
     const pageContent = musics.slice(index, index + pageMax);
@@ -372,7 +277,6 @@ function nbsForm(player) {
           player.sendForm(searchForm, (__, data) => {
             if (data) {
               let [param] = data;
-              param = param.trim();
               if (param) {
                 search(param);
               } else player.tell(`${Red}请输入搜索内容`);
@@ -431,9 +335,8 @@ function nbsForm(player) {
 
 /**
  * 去两侧引号
- * @param {String} str
  */
-function trimQuote(str) {
+function trimQuote(str: string) {
   if (str && str.startsWith('"') && str.endsWith('"'))
     return str.slice(1, str.length - 1);
   return str;
@@ -445,28 +348,35 @@ function trimQuote(str) {
   cmd.optional('filename', ParamType.RawText);
   cmd.overload(['filename']);
 
-  cmd.setCallback((_, origin, out, result) => {
-    const { player } = origin;
-    if (!player) {
-      out.error('该命令只能由玩家执行');
-      return false;
-    }
-
-    const { filename } = result;
-    if (filename) {
-      const filePath = `${pluginDataPath}${trimQuote(filename)}`;
-      if (!File.exists(filePath)) {
-        out.error('文件不存在！');
+  cmd.setCallback(
+    (
+      _: Command,
+      origin: CommandOrigin,
+      out: CommandOutput,
+      result: { filename: string }
+    ) => {
+      const { player } = origin;
+      if (!player) {
+        out.error('该命令只能由玩家执行');
         return false;
       }
 
-      startPlay(player, trimQuote(filename));
+      const { filename } = result;
+      if (filename) {
+        const filePath = `${pluginDataPath}${trimQuote(filename)}`;
+        if (!fs.existsSync(filePath)) {
+          out.error('文件不存在！');
+          return false;
+        }
+
+        startPlay(player, trimQuote(filename));
+        return true;
+      }
+
+      nbsForm(player);
       return true;
     }
-
-    nbsForm(player);
-    return true;
-  });
+  );
 
   cmd.setup();
 })();
@@ -478,29 +388,31 @@ function trimQuote(str) {
   cmd.optional('forcePlay', ParamType.Bool);
   cmd.overload(['player', 'filename', 'forcePlay']);
 
-  cmd.setCallback((_, __, out, result) => {
-    const { player, filename, forcePlay } = result;
-    const filePath = `${pluginDataPath}${trimQuote(filename)}`;
-    if (player.length === 0) {
-      out.error('玩家不在线');
-      return false;
-    }
-
-    if (!File.exists(filePath)) {
-      out.error('文件不存在！');
-      return false;
-    }
-
-    player.forEach((p) => {
-      if (forcePlay || !playTasks.get(p.xuid)) {
-        startPlay(p, filename);
-        out.success(`成功为 ${p.name} 播放 ${filename}`);
-        return;
+  cmd.setCallback(
+    (_: Command, __: CommandOrigin, out: CommandOutput, result: object) => {
+      const { player, filename, forcePlay } = result;
+      const filePath = `${pluginDataPath}${trimQuote(filename)}`;
+      if (player.length === 0) {
+        out.error('玩家不在线');
+        return false;
       }
-      out.error(`玩家 ${p.name} 正在播放中，操作失败`);
-    });
-    return true;
-  });
+
+      if (!fs.existsSync(filePath)) {
+        out.error('文件不存在！');
+        return false;
+      }
+
+      player.forEach((p: Player) => {
+        if (forcePlay || !playTasks.get(p.xuid)) {
+          startPlay(p, filename);
+          out.success(`成功为 ${p.name} 播放 ${filename}`);
+          return;
+        }
+        out.error(`玩家 ${p.name} 正在播放中，操作失败`);
+      });
+      return true;
+    }
+  );
 
   cmd.setup();
 })();
@@ -508,7 +420,7 @@ function trimQuote(str) {
 (() => {
   const cmd = mc.newCommand('nbstop', '停止播放nbs', PermType.Any);
 
-  cmd.setCallback((_, origin, out) => {
+  cmd.setCallback((_: Command, origin: CommandOrigin, out: CommandOutput) => {
     const { player } = origin;
     if (!player) {
       out.error('该命令只能由玩家执行');
@@ -528,7 +440,7 @@ function trimQuote(str) {
 (() => {
   const cmd = mc.newCommand('nbsisplaying', '玩家是否正在播放', PermType.Any);
 
-  cmd.setCallback((_, origin, out) => {
+  cmd.setCallback((_: Command, origin: CommandOrigin, out: CommandOutput) => {
     const { player } = origin;
     if (!player) {
       out.error('该命令只能由玩家执行');
@@ -545,9 +457,9 @@ function trimQuote(str) {
   cmd.setup();
 })();
 
-mc.listen('onLeft', (pl) => stopPlay(pl.xuid));
+mc.listen('onLeft', (pl: Player) => stopPlay(pl.xuid));
 
-ll.registerPlugin(pluginName, '在服务器播放NBS音乐！', [0, 2, 0], {
+ll.registerPlugin(pluginName, '在服务器播放NBS音乐！', [1, 0, 0], {
   Author: 'student_2333',
   License: 'Apache-2.0',
 });
