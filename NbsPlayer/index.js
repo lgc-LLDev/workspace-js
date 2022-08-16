@@ -37,7 +37,7 @@ function readNbs(name, callback) {
         if (err)
             callback(false, "\u6253\u5F00\u6587\u4EF6\u51FA\u9519\n".concat(err.stack));
         else
-            callback(true, (0, nbs_js_1.fromArrayBuffer)(data.buffer, { ignoreEmptyLayers: true }));
+            callback(true, (0, nbs_js_1.fromArrayBuffer)(data.buffer));
     });
 }
 function stopPlay(xuid) {
@@ -94,7 +94,12 @@ function startPlay(player, nbsName) {
         var totalLength = timePerTick * length;
         var totalLengthStr = formatMsTime(totalLength);
         var totalNotes = 0;
-        layers.forEach(function (v) { return (totalNotes += v.notes.length); });
+        layers.forEach(function (l) {
+            l.notes.forEach(function (n) {
+                if (n)
+                    totalNotes++;
+            });
+        });
         var playedNotes = 0;
         var bs = new BinaryStream();
         var startTime = Date.now();
@@ -114,7 +119,9 @@ function startPlay(player, nbsName) {
                     var _a = instruments.loaded[instrument], pitch = _a.pitch, builtIn = _a.builtIn, insName = _a.meta.name;
                     var pos = pl.pos;
                     pos.y += 0.37;
-                    var finalKey = (pitch || 45) + ((key || 45) - 45) + (pitch || 0) / 100;
+                    var finalKey = (pitch || 45) + ((key || 45) - 45) + (notePitch || 0) / 100;
+                    log(finalKey);
+                    playedNotes++;
                     willPlay.push(getPlaySoundDataPack(bs, (builtIn ? builtInInstruments.get(instrument) : insName) || '', pos, ((velocity || 100) / 100) * (volume / 100), Math.pow(2, (finalKey / 12))));
                 }
             });

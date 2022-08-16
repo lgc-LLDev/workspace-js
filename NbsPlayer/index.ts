@@ -52,8 +52,7 @@ function readNbs(
   const nbsPath = `${pluginDataPath}${name}`;
   fs.readFile(nbsPath, function (err, data) {
     if (err) callback(false, `打开文件出错\n${err.stack}`);
-    else
-      callback(true, fromArrayBuffer(data.buffer, { ignoreEmptyLayers: true }));
+    else callback(true, fromArrayBuffer(data.buffer));
   });
 }
 
@@ -130,7 +129,11 @@ function startPlay(player: Player, nbsName: string) {
     const totalLength = timePerTick * length;
     const totalLengthStr = formatMsTime(totalLength);
     let totalNotes = 0;
-    layers.forEach((v) => (totalNotes += v.notes.length));
+    layers.forEach((l) => {
+      l.notes.forEach((n) => {
+        if (n) totalNotes++;
+      });
+    });
 
     let playedNotes = 0;
     const bs = new BinaryStream();
@@ -159,8 +162,11 @@ function startPlay(player: Player, nbsName: string) {
 
           pos.y += 0.37;
           const finalKey =
-            (pitch || 45) + ((key || 45) - 45) + (pitch || 0) / 100;
+            (pitch || 45) + ((key || 45) - 45) + (notePitch || 0) / 100;
 
+          log(finalKey)
+
+          playedNotes++;
           willPlay.push(
             getPlaySoundDataPack(
               bs,
