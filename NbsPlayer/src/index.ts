@@ -215,7 +215,7 @@ function startPlay(player: Player, nbsName: string) {
       willPlay.forEach((p) => pl.sendPacket(p));
 
       // const timeSpentStr = formatMsTime(timeSpent);
-      const bossBarIndex = (timeSpent / totalLength) * 100;
+      const bossBarIndex = Math.round((timeSpent / totalLength) * 100);
       if (bossBarIndex !== lastBossBarIndex) {
         lastBossBarIndex = bossBarIndex;
         pl.setBossBar(
