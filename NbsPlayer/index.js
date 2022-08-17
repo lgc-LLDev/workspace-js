@@ -31,6 +31,7 @@ var builtInInstruments = new Map([
     [15, 'note.pling'],
 ]);
 var playTasks = new Map();
+var bossBarId = 627752937; // NbsPlayer九键(xd
 function readNbs(name, callback) {
     var nbsPath = "".concat(pluginDataPath).concat(name);
     fs.readFile(nbsPath, function (err, data) {
@@ -47,7 +48,7 @@ function stopPlay(xuid) {
         var ret = playTasks["delete"](xuid);
         var pl = mc.getPlayer(xuid);
         if (pl)
-            pl.tell("".concat(Red, "\u25A0 ").concat(LightPurple, "NbsPlayer\n\n"), 4);
+            pl.removeBossBar(bossBarId);
         return ret;
     }
     return false;
@@ -61,9 +62,12 @@ function formatMsTime(msTime) {
     return "".concat(min, ":").concat(sec, ".").concat(ms);
 }
 function getPlaySoundDataPack(bs, sound, position, volume, pitch) {
+    // log(sound, ' | ', position, ' | ', volume, ' | ', pitch);
     bs.reset();
     bs.writeString(sound);
-    bs.writeVec3(position);
+    bs.writeVarInt(Math.round(position.x * 8));
+    bs.writeUnsignedVarInt(Math.round(position.y * 8));
+    bs.writeVarInt(Math.round(position.z * 8));
     bs.writeFloat(volume);
     bs.writeFloat(pitch);
     return bs.createPacket(86);
@@ -73,10 +77,11 @@ function startPlay(player, nbsName) {
     var playingTask = playTasks.get(xuid);
     if (playingTask)
         stopPlay(xuid);
-    player.tell("".concat(Green, "\u89E3\u6790nbs\u6587\u4EF6\u2026\u2026"), 4);
+    player.setBossBar(bossBarId, "".concat(Green, "\u89E3\u6790nbs\u6587\u4EF6\u2026\u2026"), 100, 4);
     readNbs(nbsName, function (ok, ret) {
         if (!ok) {
             player.tell("".concat(Red, "\u6587\u4EF6\u8F6C\u6362\u51FA\u9519\uFF01\n\u9519\u8BEF\u539F\u56E0\uFF1A ").concat(ret), 0);
+            player.removeBossBar(bossBarId);
             return;
         }
         if (!(ret instanceof nbs_js_1.Song))
@@ -92,25 +97,34 @@ function startPlay(player, nbsName) {
         else
             songDisplayName += nbsName;
         var totalLength = timePerTick * length;
-        var totalLengthStr = formatMsTime(totalLength);
-        var totalNotes = 0;
-        layers.forEach(function (l) {
-            l.notes.forEach(function (n) {
-                if (n)
-                    totalNotes++;
-            });
+        /*
+        const totalLengthStr = formatMsTime(totalLength);
+        let totalNotes = 0;
+        layers.forEach((l) => {
+          l.notes.forEach((n) => {
+            if (n) totalNotes += 1;
+          });
         });
-        var playedNotes = 0;
-        var bs = new BinaryStream();
+        */
+        // let playedNotes = 0;
+        var passedTick = 0;
+        var lastBossBarIndex = 0;
         var startTime = Date.now();
+        var bs = new BinaryStream();
         var task = function () {
+            var timeSpent = Date.now() - startTime;
+            var nowTick = Math.floor(timeSpent / timePerTick);
+            if (nowTick <= passedTick)
+                return;
+            var passedInterval = nowTick - passedTick;
+            passedTick = nowTick;
             var pl = mc.getPlayer(xuid);
-            if (totalNotes - playedNotes === 0 || !pl) {
+            if (passedTick > length || !pl) {
                 stopPlay(xuid);
                 return;
             }
             var willPlay = [];
-            layers.forEach(function (layer) {
+            var addWillPlay = function (layer) {
                 var notes = layer.notes;
                 var n = notes.shift();
                 if (n) {
@@ -119,25 +133,33 @@ function startPlay(player, nbsName) {
                     var _a = instruments.loaded[instrument], pitch = _a.pitch, builtIn = _a.builtIn, insName = _a.meta.name;
                     var pos = pl.pos;
                     pos.y += 0.37;
-                    var finalKey = (pitch || 45) + ((key || 45) - 45) + (notePitch || 0) / 100;
-                    log(finalKey);
-                    playedNotes++;
-                    willPlay.push(getPlaySoundDataPack(bs, (builtIn ? builtInInstruments.get(instrument) : insName) || '', pos, ((velocity || 100) / 100) * (volume / 100), Math.pow(2, (finalKey / 12))));
+                    var finalKey = (key || 45) + ((pitch || 45) - 45) + (notePitch || 0) / 100;
+                    // log(finalKey);
+                    // playedNotes += 1;
+                    willPlay.push(getPlaySoundDataPack(bs, (builtIn ? builtInInstruments.get(instrument) : insName) || '', pos, ((velocity || 100) / 100) * (volume / 100), Math.pow(2, ((finalKey - 45) / 12))));
                 }
-            });
-            // const {
-            //   pos: { x, y, z },
-            // } = pl;
+            };
+            for (var i = 0; i < passedInterval; i += 1)
+                layers.forEach(addWillPlay);
             willPlay.forEach(function (p) { return pl.sendPacket(p); });
-            var timeSpent = Date.now() - startTime;
-            var timeSpentStr = formatMsTime(timeSpent);
-            pl.tell("".concat(Green, "\u25B6 ").concat(LightPurple, "NbsPlayer\n") +
-                "".concat(songDisplayName, "\n") +
-                "".concat(Yellow).concat(timeSpentStr, " ").concat(White, "/ ").concat(Gold).concat(totalLengthStr) +
-                "".concat(Gray, " | ") +
-                "".concat(Yellow).concat(playedNotes, " ").concat(White, "/ ").concat(Gold).concat(totalNotes), 4);
+            // const timeSpentStr = formatMsTime(timeSpent);
+            var bossBarIndex = (timeSpent / totalLength) * 100;
+            if (bossBarIndex !== lastBossBarIndex) {
+                lastBossBarIndex = bossBarIndex;
+                pl.setBossBar(bossBarId, "".concat(Green, "\u25B6 ").concat(LightPurple, "NbsPlayer").concat(Gray, " | ").concat(songDisplayName), bossBarIndex, 3);
+            }
+            /*
+            pl.tell(
+              `${Green}▶ ${LightPurple}NbsPlayer\n` +
+                `\n` +
+                `${Yellow}${timeSpentStr} ${White}/ ${Gold}${totalLengthStr}` +
+                `${Gray} | ` +
+                `${Yellow}${playedNotes} ${White}/ ${Gold}${totalNotes}`,
+              4
+            );
+            */
         };
-        playTasks.set(xuid, setInterval(task, timePerTick));
+        playTasks.set(xuid, setInterval(task, 0));
     });
 }
 /**

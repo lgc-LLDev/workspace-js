@@ -43,14 +43,15 @@ const builtInInstruments = new Map([
   [14, 'note.banjo'],
   [15, 'note.pling'],
 ]);
-const playTasks = new Map();
+const playTasks: Map<string, number> = new Map();
+const bossBarId = 627752937; // NbsPlayer九键(xd
 
 function readNbs(
   name: string,
   callback: (ok: boolean, resultOrError: string | Song | undefined) => any
 ) {
   const nbsPath = `${pluginDataPath}${name}`;
-  fs.readFile(nbsPath, function (err, data) {
+  fs.readFile(nbsPath, (err, data) => {
     if (err) callback(false, `打开文件出错\n${err.stack}`);
     else callback(true, fromArrayBuffer(data.buffer));
   });
@@ -63,7 +64,7 @@ function stopPlay(xuid: string): boolean {
     const ret = playTasks.delete(xuid);
 
     const pl = mc.getPlayer(xuid);
-    if (pl) pl.tell(`${Red}■ ${LightPurple}NbsPlayer\n\n`, 4);
+    if (pl) pl.removeBossBar(bossBarId);
 
     return ret;
   }
@@ -86,10 +87,14 @@ function getPlaySoundDataPack(
   volume: number,
   pitch: number
 ): Packet {
+  // log(sound, ' | ', position, ' | ', volume, ' | ', pitch);
   bs.reset();
-
   bs.writeString(sound);
-  bs.writeVec3(position);
+
+  bs.writeVarInt(Math.round(position.x * 8));
+  bs.writeUnsignedVarInt(Math.round(position.y * 8));
+  bs.writeVarInt(Math.round(position.z * 8));
+
   bs.writeFloat(volume);
   bs.writeFloat(pitch);
 
@@ -101,11 +106,12 @@ function startPlay(player: Player, nbsName: string) {
   const playingTask = playTasks.get(xuid);
   if (playingTask) stopPlay(xuid);
 
-  player.tell(`${Green}解析nbs文件……`, 4);
+  player.setBossBar(bossBarId, `${Green}解析nbs文件……`, 100, 4);
 
   readNbs(nbsName, (ok, ret) => {
     if (!ok) {
       player.tell(`${Red}文件转换出错！\n错误原因： ${ret}`, 0);
+      player.removeBossBar(bossBarId);
       return;
     }
 
@@ -127,27 +133,40 @@ function startPlay(player: Player, nbsName: string) {
     } else songDisplayName += nbsName;
 
     const totalLength = timePerTick * length;
+    /*
     const totalLengthStr = formatMsTime(totalLength);
     let totalNotes = 0;
     layers.forEach((l) => {
       l.notes.forEach((n) => {
-        if (n) totalNotes++;
+        if (n) totalNotes += 1;
       });
     });
+    */
 
-    let playedNotes = 0;
-    const bs = new BinaryStream();
+    // let playedNotes = 0;
+    let passedTick = 0;
+    let lastBossBarIndex = 0;
     const startTime = Date.now();
 
+    const bs = new BinaryStream();
+
     const task = () => {
+      const timeSpent = Date.now() - startTime;
+      const nowTick = Math.floor(timeSpent / timePerTick);
+      if (nowTick <= passedTick) return;
+
+      const passedInterval = nowTick - passedTick;
+      passedTick = nowTick;
+
       const pl = mc.getPlayer(xuid);
-      if (totalNotes - playedNotes === 0 || !pl) {
+      if (passedTick > length || !pl) {
         stopPlay(xuid);
         return;
       }
 
       const willPlay: Array<Packet> = [];
-      layers.forEach((layer: Layer) => {
+
+      const addWillPlay = (layer: Layer) => {
         const { notes } = layer;
         const n = notes.shift();
         if (n) {
@@ -162,41 +181,49 @@ function startPlay(player: Player, nbsName: string) {
 
           pos.y += 0.37;
           const finalKey =
-            (pitch || 45) + ((key || 45) - 45) + (notePitch || 0) / 100;
+            (key || 45) + ((pitch || 45) - 45) + (notePitch || 0) / 100;
+          // log(finalKey);
 
-          log(finalKey)
-
-          playedNotes++;
+          // playedNotes += 1;
           willPlay.push(
             getPlaySoundDataPack(
               bs,
               (builtIn ? builtInInstruments.get(instrument) : insName) || '',
               pos,
               ((velocity || 100) / 100) * (volume / 100),
-              2 ** (finalKey / 12)
+              2 ** ((finalKey - 45) / 12)
             )
           );
         }
-      });
+      };
+      for (let i = 0; i < passedInterval; i += 1) layers.forEach(addWillPlay);
 
-      // const {
-      //   pos: { x, y, z },
-      // } = pl;
       willPlay.forEach((p) => pl.sendPacket(p));
 
-      const timeSpent = Date.now() - startTime;
-      const timeSpentStr = formatMsTime(timeSpent);
+      // const timeSpentStr = formatMsTime(timeSpent);
+      const bossBarIndex = (timeSpent / totalLength) * 100;
+      if (bossBarIndex !== lastBossBarIndex) {
+        lastBossBarIndex = bossBarIndex;
+        pl.setBossBar(
+          bossBarId,
+          `${Green}▶ ${LightPurple}NbsPlayer${Gray} | ${songDisplayName}`,
+          bossBarIndex,
+          3
+        );
+      }
+      /*
       pl.tell(
         `${Green}▶ ${LightPurple}NbsPlayer\n` +
-          `${songDisplayName}\n` +
+          `\n` +
           `${Yellow}${timeSpentStr} ${White}/ ${Gold}${totalLengthStr}` +
           `${Gray} | ` +
           `${Yellow}${playedNotes} ${White}/ ${Gold}${totalNotes}`,
         4
       );
+      */
     };
 
-    playTasks.set(xuid, setInterval(task, timePerTick));
+    playTasks.set(xuid, setInterval(task, 0));
   });
 }
 
