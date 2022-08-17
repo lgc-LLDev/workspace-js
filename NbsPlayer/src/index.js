@@ -36,7 +36,7 @@ function readNbs(name, callback) {
     var nbsPath = "".concat(pluginDataPath).concat(name);
     fs.readFile(nbsPath, function (err, data) {
         if (err)
-            callback(false, "\u6253\u5F00\u6587\u4EF6\u51FA\u9519\n".concat(err.stack));
+            callback(false, err.stack);
         else
             callback(true, (0, nbs_js_1.fromArrayBuffer)(data.buffer));
     });
@@ -53,14 +53,16 @@ function stopPlay(xuid) {
     }
     return false;
 }
-function formatMsTime(msTime) {
-    var ms = (msTime % 1000).toString()[0];
-    var sec = Math.floor((msTime / 1000) % 60)
-        .toString()
-        .padStart(2, '0');
-    var min = Math.floor(msTime / 1000 / 60).toString();
-    return "".concat(min, ":").concat(sec, ".").concat(ms);
+/*
+function formatMsTime(msTime: number): string {
+  const ms = (msTime % 1000).toString()[0];
+  const sec = Math.floor((msTime / 1000) % 60)
+    .toString()
+    .padStart(2, '0');
+  const min = Math.floor(msTime / 1000 / 60).toString();
+  return `${min}:${sec}.${ms}`;
 }
+*/
 function getPlaySoundDataPack(bs, sound, position, volume, pitch) {
     // log(sound, ' | ', position, ' | ', volume, ' | ', pitch);
     bs.reset();
@@ -80,13 +82,18 @@ function startPlay(player, nbsName) {
     player.setBossBar(bossBarId, "".concat(Green, "\u89E3\u6790nbs\u6587\u4EF6\u2026\u2026"), 100, 4);
     readNbs(nbsName, function (ok, ret) {
         if (!ok) {
-            player.tell("".concat(Red, "\u6587\u4EF6\u8F6C\u6362\u51FA\u9519\uFF01\n\u9519\u8BEF\u539F\u56E0\uFF1A ").concat(ret), 0);
+            player.tell("".concat(Red, "\u6587\u4EF6\u8BFB\u53D6\u51FA\u9519\uFF01\n").concat(ret), 0);
             player.removeBossBar(bossBarId);
             return;
         }
         if (!(ret instanceof nbs_js_1.Song))
             return;
-        var _a = ret.meta, name = _a.name, author = _a.author, originalAuthor = _a.originalAuthor, length = ret.length, instruments = ret.instruments, layers = ret.layers, timePerTick = ret.timePerTick;
+        var errors = ret.errors, _a = ret.meta, name = _a.name, author = _a.author, originalAuthor = _a.originalAuthor, length = ret.length, instruments = ret.instruments, layers = ret.layers, timePerTick = ret.timePerTick;
+        if (errors.length > 0) {
+            player.tell("".concat(Red, "\u6587\u4EF6\u89E3\u6790\u51FA\u9519\uFF01\n").concat(errors.join('\n')), 0);
+            player.removeBossBar(bossBarId);
+            return;
+        }
         var songDisplayName = Aqua;
         if (name) {
             songDisplayName += name;
@@ -97,16 +104,15 @@ function startPlay(player, nbsName) {
         else
             songDisplayName += nbsName;
         var totalLength = timePerTick * length;
-        /*
-        const totalLengthStr = formatMsTime(totalLength);
-        let totalNotes = 0;
-        layers.forEach((l) => {
-          l.notes.forEach((n) => {
-            if (n) totalNotes += 1;
-          });
+        // const totalLengthStr = formatMsTime(totalLength);
+        var totalNotes = 0;
+        layers.forEach(function (l) {
+            l.notes.forEach(function (n) {
+                if (n)
+                    totalNotes += 1;
+            });
         });
-        */
-        // let playedNotes = 0;
+        var playedNotes = 0;
         var passedTick = 0;
         var lastBossBarIndex = 0;
         var startTime = Date.now();
@@ -119,15 +125,20 @@ function startPlay(player, nbsName) {
             var passedInterval = nowTick - passedTick;
             passedTick = nowTick;
             var pl = mc.getPlayer(xuid);
-            if (passedTick > length || !pl) {
+            if ((passedTick > length && totalNotes >= playedNotes) || !pl) {
                 stopPlay(xuid);
                 return;
             }
             var willPlay = [];
             var addWillPlay = function (layer) {
                 var notes = layer.notes;
-                var n = notes.shift();
-                if (n) {
+                var willPlayNotes = [];
+                for (var i = 0; i < passedInterval; i += 1) {
+                    var n = notes.shift();
+                    if (n)
+                        willPlayNotes.push(n);
+                }
+                willPlayNotes.forEach(function (n) {
                     var instrument = n.instrument, velocity = n.velocity, key = n.key, notePitch = n.pitch;
                     var volume = layer.volume;
                     var _a = instruments.loaded[instrument], pitch = _a.pitch, builtIn = _a.builtIn, insName = _a.meta.name;
@@ -135,12 +146,11 @@ function startPlay(player, nbsName) {
                     pos.y += 0.37;
                     var finalKey = (key || 45) + ((pitch || 45) - 45) + (notePitch || 0) / 100;
                     // log(finalKey);
-                    // playedNotes += 1;
+                    playedNotes += 1;
                     willPlay.push(getPlaySoundDataPack(bs, (builtIn ? builtInInstruments.get(instrument) : insName) || '', pos, ((velocity || 100) / 100) * (volume / 100), Math.pow(2, ((finalKey - 45) / 12))));
-                }
+                });
             };
-            for (var i = 0; i < passedInterval; i += 1)
-                layers.forEach(addWillPlay);
+            layers.forEach(addWillPlay);
             willPlay.forEach(function (p) { return pl.sendPacket(p); });
             // const timeSpentStr = formatMsTime(timeSpent);
             var bossBarIndex = (timeSpent / totalLength) * 100;

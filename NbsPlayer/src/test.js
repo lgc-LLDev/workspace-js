@@ -1,7 +1,7 @@
-import * as nbsJs from '@encode42/nbs.js';
-import * as fs from 'fs';
+const nbsJs = require('@encode42/nbs.js');
+const fs = require('fs');
 
-const f = fs.readFileSync('./碧蓝档案 Blue Archive - Rabbit of Caerbanog.nbs');
+const f = fs.readFileSync('./14th Song.nbs');
 const song = nbsJs.fromArrayBuffer(f.buffer);
 let total = 0;
 song.layers.forEach((l) => {
@@ -9,4 +9,5 @@ song.layers.forEach((l) => {
     if (n) total++;
   });
 });
+console.log(song);
 console.log(total);

@@ -1,9 +1,11 @@
-/* global ll mc system Format PermType ParamType logger BinaryStream */
+/* eslint-disable @typescript-eslint/no-empty-function */
+/* eslint-disable @typescript-eslint/triple-slash-reference */
+/* global ll mc Format PermType ParamType BinaryStream Packet Command CommandOrigin CommandOutput */
 // LiteLoaderScript Dev Helper
 /// <reference path="C:\Users\Administrator\.vscode\extensions\moxicat.llscripthelper-1.0.1\lib\Library/JS/Api.js" />
 
 import * as fs from 'fs';
-import { fromArrayBuffer, Layer, Song } from '@encode42/nbs.js';
+import { fromArrayBuffer, Layer, Note, Song } from '@encode42/nbs.js';
 
 const pluginName = 'NbsPlayer';
 const pluginDataPath = `plugins/${pluginName}/`;
@@ -43,16 +45,16 @@ const builtInInstruments = new Map([
   [14, 'note.banjo'],
   [15, 'note.pling'],
 ]);
-const playTasks: Map<string, number> = new Map();
+const playTasks: Map<string, unknown> = new Map();
 const bossBarId = 627752937; // NbsPlayer九键(xd
 
 function readNbs(
   name: string,
-  callback: (ok: boolean, resultOrError: string | Song | undefined) => any
+  callback: (ok: boolean, resultOrError: string | Song | undefined) => unknown
 ) {
   const nbsPath = `${pluginDataPath}${name}`;
   fs.readFile(nbsPath, (err, data) => {
-    if (err) callback(false, `打开文件出错\n${err.stack}`);
+    if (err) callback(false, err.stack);
     else callback(true, fromArrayBuffer(data.buffer));
   });
 }
@@ -71,6 +73,7 @@ function stopPlay(xuid: string): boolean {
   return false;
 }
 
+/*
 function formatMsTime(msTime: number): string {
   const ms = (msTime % 1000).toString()[0];
   const sec = Math.floor((msTime / 1000) % 60)
@@ -79,6 +82,7 @@ function formatMsTime(msTime: number): string {
   const min = Math.floor(msTime / 1000 / 60).toString();
   return `${min}:${sec}.${ms}`;
 }
+*/
 
 function getPlaySoundDataPack(
   bs: BinaryStream,
@@ -110,19 +114,26 @@ function startPlay(player: Player, nbsName: string) {
 
   readNbs(nbsName, (ok, ret) => {
     if (!ok) {
-      player.tell(`${Red}文件转换出错！\n错误原因： ${ret}`, 0);
+      player.tell(`${Red}文件读取出错！\n${ret}`, 0);
       player.removeBossBar(bossBarId);
       return;
     }
 
     if (!(ret instanceof Song)) return;
     const {
+      errors,
       meta: { name, author, originalAuthor },
       length,
       instruments,
       layers,
       timePerTick,
     } = ret;
+
+    if (errors.length > 0) {
+      player.tell(`${Red}文件解析出错！\n${errors.join('\n')}`, 0);
+      player.removeBossBar(bossBarId);
+      return;
+    }
 
     let songDisplayName = Aqua;
     if (name) {
@@ -133,17 +144,15 @@ function startPlay(player: Player, nbsName: string) {
     } else songDisplayName += nbsName;
 
     const totalLength = timePerTick * length;
-    /*
-    const totalLengthStr = formatMsTime(totalLength);
+    // const totalLengthStr = formatMsTime(totalLength);
     let totalNotes = 0;
     layers.forEach((l) => {
       l.notes.forEach((n) => {
         if (n) totalNotes += 1;
       });
     });
-    */
 
-    // let playedNotes = 0;
+    let playedNotes = 0;
     let passedTick = 0;
     let lastBossBarIndex = 0;
     const startTime = Date.now();
@@ -159,7 +168,7 @@ function startPlay(player: Player, nbsName: string) {
       passedTick = nowTick;
 
       const pl = mc.getPlayer(xuid);
-      if (passedTick > length || !pl) {
+      if ((passedTick > length && totalNotes >= playedNotes) || !pl) {
         stopPlay(xuid);
         return;
       }
@@ -168,8 +177,13 @@ function startPlay(player: Player, nbsName: string) {
 
       const addWillPlay = (layer: Layer) => {
         const { notes } = layer;
-        const n = notes.shift();
-        if (n) {
+        const willPlayNotes: Array<Note> = [];
+        for (let i = 0; i < passedInterval; i += 1) {
+          const n = notes.shift();
+          if (n) willPlayNotes.push(n);
+        }
+
+        willPlayNotes.forEach((n) => {
           const { instrument, velocity, key, pitch: notePitch } = n;
           const { volume } = layer;
           const {
@@ -184,7 +198,7 @@ function startPlay(player: Player, nbsName: string) {
             (key || 45) + ((pitch || 45) - 45) + (notePitch || 0) / 100;
           // log(finalKey);
 
-          // playedNotes += 1;
+          playedNotes += 1;
           willPlay.push(
             getPlaySoundDataPack(
               bs,
@@ -194,9 +208,9 @@ function startPlay(player: Player, nbsName: string) {
               2 ** ((finalKey - 45) / 12)
             )
           );
-        }
+        });
       };
-      for (let i = 0; i < passedInterval; i += 1) layers.forEach(addWillPlay);
+      layers.forEach(addWillPlay);
 
       willPlay.forEach((p) => pl.sendPacket(p));
 
@@ -309,7 +323,7 @@ function nbsForm(player: Player) {
             .addInput('请输入搜索内容');
           player.sendForm(searchForm, (__, data) => {
             if (data) {
-              let [param] = data;
+              const [param] = data;
               if (param) {
                 search(param);
               } else player.tell(`${Red}请输入搜索内容`);
@@ -386,7 +400,7 @@ function trimQuote(str: string) {
       _: Command,
       origin: CommandOrigin,
       out: CommandOutput,
-      result: { filename: string }
+      result: { filename?: string }
     ) => {
       const { player } = origin;
       if (!player) {
@@ -422,7 +436,12 @@ function trimQuote(str: string) {
   cmd.overload(['player', 'filename', 'forcePlay']);
 
   cmd.setCallback(
-    (_: Command, __: CommandOrigin, out: CommandOutput, result: object) => {
+    (
+      _: Command,
+      __: CommandOrigin,
+      out: CommandOutput,
+      result: { player: Array<Player>; filename: string; forcePlay?: boolean }
+    ) => {
       const { player, filename, forcePlay } = result;
       const filePath = `${pluginDataPath}${trimQuote(filename)}`;
       if (player.length === 0) {
@@ -452,6 +471,7 @@ function trimQuote(str: string) {
 
 (() => {
   const cmd = mc.newCommand('nbstop', '停止播放nbs', PermType.Any);
+  cmd.overload();
 
   cmd.setCallback((_: Command, origin: CommandOrigin, out: CommandOutput) => {
     const { player } = origin;
@@ -466,12 +486,12 @@ function trimQuote(str: string) {
     return false;
   });
 
-  cmd.overload();
   cmd.setup();
 })();
 
 (() => {
   const cmd = mc.newCommand('nbsisplaying', '玩家是否正在播放', PermType.Any);
+  cmd.overload();
 
   cmd.setCallback((_: Command, origin: CommandOrigin, out: CommandOutput) => {
     const { player } = origin;
@@ -486,7 +506,6 @@ function trimQuote(str: string) {
     return false;
   });
 
-  cmd.overload();
   cmd.setup();
 })();
 
