@@ -4,7 +4,8 @@
   "description": "在BDS中播放nbs格式红石音乐文件！",
   "main": "src/index.js",
   "scripts": {
-    "test": "npx ts-node test.ts"
+    "test": "npx ts-node src/test.ts",
+    "build": "npx tsc src/index.ts"
   },
   "repository": {
     "type": "git",

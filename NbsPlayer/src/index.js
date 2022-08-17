@@ -1,5 +1,7 @@
 "use strict";
-/* global ll mc system Format PermType ParamType logger BinaryStream */
+/* eslint-disable @typescript-eslint/no-empty-function */
+/* eslint-disable @typescript-eslint/triple-slash-reference */
+/* global ll mc Format PermType ParamType BinaryStream Packet Command CommandOrigin CommandOutput */
 // LiteLoaderScript Dev Helper
 /// <reference path="C:\Users\Administrator\.vscode\extensions\moxicat.llscripthelper-1.0.1\lib\Library/JS/Api.js" />
 exports.__esModule = true;
@@ -153,7 +155,7 @@ function startPlay(player, nbsName) {
             layers.forEach(addWillPlay);
             willPlay.forEach(function (p) { return pl.sendPacket(p); });
             // const timeSpentStr = formatMsTime(timeSpent);
-            var bossBarIndex = (timeSpent / totalLength) * 100;
+            var bossBarIndex = Math.round((timeSpent / totalLength) * 100);
             if (bossBarIndex !== lastBossBarIndex) {
                 lastBossBarIndex = bossBarIndex;
                 pl.setBossBar(bossBarId, "".concat(Green, "\u25B6 ").concat(LightPurple, "NbsPlayer").concat(Gray, " | ").concat(songDisplayName), bossBarIndex, 3);
@@ -354,6 +356,7 @@ function trimQuote(str) {
 })();
 (function () {
     var cmd = mc.newCommand('nbstop', '停止播放nbs', PermType.Any);
+    cmd.overload();
     cmd.setCallback(function (_, origin, out) {
         var player = origin.player;
         if (!player) {
@@ -365,11 +368,11 @@ function trimQuote(str) {
         out.error('操作失败');
         return false;
     });
-    cmd.overload();
     cmd.setup();
 })();
 (function () {
     var cmd = mc.newCommand('nbsisplaying', '玩家是否正在播放', PermType.Any);
+    cmd.overload();
     cmd.setCallback(function (_, origin, out) {
         var player = origin.player;
         if (!player) {
@@ -381,7 +384,6 @@ function trimQuote(str) {
         out.error('false');
         return false;
     });
-    cmd.overload();
     cmd.setup();
 })();
 mc.listen('onLeft', function (pl) { return stopPlay(pl.xuid); });
