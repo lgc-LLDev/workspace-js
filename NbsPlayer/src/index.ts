@@ -431,7 +431,7 @@ function trimQuote(str: string) {
 (() => {
   const cmd = mc.newCommand('nbsplay', '管理员播放指令');
   cmd.mandatory('player', ParamType.Player);
-  cmd.mandatory('filename', ParamType.RawText);
+  cmd.mandatory('filename', ParamType.String);
   cmd.optional('forcePlay', ParamType.Bool);
   cmd.overload(['player', 'filename', 'forcePlay']);
 
@@ -443,7 +443,8 @@ function trimQuote(str: string) {
       result: { player: Array<Player>; filename: string; forcePlay?: boolean }
     ) => {
       const { player, filename, forcePlay } = result;
-      const filePath = `${pluginDataPath}${trimQuote(filename)}`;
+      const trimmedFilename = trimQuote(filename);
+      const filePath = `${pluginDataPath}${trimmedFilename}`;
       if (player.length === 0) {
         out.error('玩家不在线');
         return false;
@@ -456,7 +457,7 @@ function trimQuote(str: string) {
 
       player.forEach((p: Player) => {
         if (forcePlay || !playTasks.get(p.xuid)) {
-          startPlay(p, filename);
+          startPlay(p, trimmedFilename);
           out.success(`成功为 ${p.name} 播放 ${filename}`);
           return;
         }

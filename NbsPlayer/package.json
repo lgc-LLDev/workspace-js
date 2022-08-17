@@ -2,10 +2,10 @@
   "name": "nbs_player",
   "version": "1.0.0",
   "description": "在BDS中播放nbs格式红石音乐文件！",
-  "main": "src/index.js",
+  "main": "dist/index.js",
   "scripts": {
-    "test": "npx ts-node src/test.ts",
-    "build": "npx tsc src/index.ts"
+    "test": "npx ts-node dist/test.js",
+    "build": "npx tsc"
   },
   "repository": {
     "type": "git",
