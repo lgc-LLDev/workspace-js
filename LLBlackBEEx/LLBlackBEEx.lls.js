@@ -4,7 +4,7 @@
 /// <reference path="E:\Coding\bds\.vscode\LLSEDevHelper/Library/JS/Api.js" />
 
 const pluginName = 'LLBlackBEEx';
-const pluginVersion = [0, 1, 1];
+const pluginVersion = [0, 1, 2];
 const {
   Red,
   DarkGreen,
@@ -43,7 +43,7 @@ const headers = {
   accept: '*/*',
   'accept-encoding': 'gzip, deflate, br',
   'accept-language': 'zh-CN,zh-TW;q=0.9,zh;q=0.8,en;q=0.7',
-  authorization: apiToken ? `Bearer ${apiToken}` : null,
+  authorization: apiToken ? `Bearer ${apiToken}` : '',
   'cache-control': 'max-age=0',
   connection: 'keep-alive',
   'sec-ch-ua':
@@ -293,7 +293,7 @@ function parseResult(query, retOpen, retPriv) {
     results.push(...retOpen.data.info);
   }
 
-  if (retPriv && !retPriv.success) {
+  if (Object.keys(retPriv) === 0 || retPriv.success === false) {
     const { status, message } = retPriv;
     msg.push(
       `${Gold}提示： 查询私有库失败${Clear}：[${Gold}${status}${Clear}] ${LightPurple}${message}`
@@ -341,7 +341,7 @@ function parseResult(query, retOpen, retPriv) {
  */
 function asyncHttpGet(url, noAuth = false) {
   const header = { ...headers }; // copy
-  if (noAuth) delete header.authorization;
+  if (noAuth || !header.authorization) delete header.authorization;
   return new Promise((resolve) => {
     network.httpGet(url, header, (code, resp) => resolve({ code, resp }));
   });
@@ -356,7 +356,7 @@ function asyncHttpGet(url, noAuth = false) {
  */
 function asyncHttpPost(url, data, noAuth = false, type = 'application/json') {
   const header = { ...headers }; // copy
-  if (noAuth) delete header.authorization;
+  if (noAuth || !header.authorization) delete header.authorization;
   return new Promise((resolve) => {
     network.httpPost(url, header, data, type, (code, resp) =>
       resolve({ code, resp })
@@ -410,30 +410,31 @@ function fullCheckMsg(name, callback) {
   (async () => {
     const respLi = [];
     let resp;
-
-    resp = (await asyncHttpGet(queryRespUrl)).resp;
-    logger.debug(resp);
-    const retResp = JSON.parse(resp);
-    const repoLi = retResp.data.repositories_list;
-    if (repoLi) {
-      repoLi.forEach((it) => {
-        const { uuid, name: name_ } = it;
-        privRespName.set(uuid, name_);
-        respLi.push(uuid);
-      });
-    }
-
     let retPriv = {};
 
-    if (respLi.length > 0) {
-      resp = (
-        await asyncHttpPost(
-          `${queryPrivateUrl}${params}`,
-          JSON.stringify({ repositories_uuid: respLi })
-        )
-      ).resp;
+    if (apiToken) {
+      resp = (await asyncHttpGet(queryRespUrl)).resp;
       logger.debug(resp);
-      retPriv = JSON.parse(resp);
+      const retResp = JSON.parse(resp);
+      const repoLi = retResp.data.repositories_list;
+      if (repoLi) {
+        repoLi.forEach((it) => {
+          const { uuid, name: name_ } = it;
+          privRespName.set(uuid, name_);
+          respLi.push(uuid);
+        });
+      }
+
+      if (respLi.length > 0) {
+        resp = (
+          await asyncHttpPost(
+            `${queryPrivateUrl}${params}`,
+            JSON.stringify({ repositories_uuid: respLi })
+          )
+        ).resp;
+        logger.debug(resp);
+        retPriv = JSON.parse(resp);
+      }
     }
 
     resp = (await asyncHttpGet(`${queryOpenUrl}${params}`, true)).resp;
