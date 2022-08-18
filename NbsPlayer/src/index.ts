@@ -45,7 +45,7 @@ const builtInInstruments = new Map([
   [14, 'note.banjo'],
   [15, 'note.pling'],
 ]);
-const playTasks: Map<string, unknown> = new Map();
+const playTasks: Map<string, number | boolean> = new Map();
 const bossBarId = 627752937; // NbsPlayer九键(xd
 
 function readNbs(
@@ -60,10 +60,10 @@ function readNbs(
 }
 
 function stopPlay(xuid: string): boolean {
-  const taskId = playTasks.get(xuid);
+  const taskId: unknown = playTasks.get(xuid);
   if (taskId) {
-    clearInterval(taskId);
     const ret = playTasks.delete(xuid);
+    if (taskId instanceof Number) clearInterval(taskId);
 
     const pl = mc.getPlayer(xuid);
     if (pl) pl.removeBossBar(bossBarId);
@@ -110,6 +110,7 @@ function startPlay(player: Player, nbsName: string) {
   const playingTask = playTasks.get(xuid);
   if (playingTask) stopPlay(xuid);
 
+  playTasks.set(xuid, true);
   player.setBossBar(bossBarId, `${Green}解析nbs文件……`, 100, 4);
 
   readNbs(nbsName, (ok, ret) => {
@@ -154,7 +155,7 @@ function startPlay(player: Player, nbsName: string) {
 
     let playedNotes = 0;
     let passedTick = 0;
-    let lastBossBarIndex = 0;
+    let lastBossBarIndex = -1; // boss bar初始为0，设为-1以便初始更新boss bar
     const startTime = Date.now();
 
     const bs = new BinaryStream();
@@ -168,7 +169,7 @@ function startPlay(player: Player, nbsName: string) {
       passedTick = nowTick;
 
       const pl = mc.getPlayer(xuid);
-      if ((passedTick > length && totalNotes >= playedNotes) || !pl) {
+      if ((passedTick >= length && totalNotes >= playedNotes) || !pl) {
         stopPlay(xuid);
         return;
       }
@@ -184,18 +185,17 @@ function startPlay(player: Player, nbsName: string) {
         }
 
         willPlayNotes.forEach((n) => {
-          const { instrument, velocity, key, pitch: notePitch } = n;
+          const { instrument, velocity, key, pitch } = n;
           const { volume } = layer;
           const {
-            pitch,
+            key: insKey,
             builtIn,
             meta: { name: insName },
           } = instruments.loaded[instrument];
           const { pos } = pl;
 
           pos.y += 0.37;
-          const finalKey =
-            (key || 45) + ((pitch || 45) - 45) + (notePitch || 0) / 100;
+          const finalKey = key + (insKey - 45) + pitch / 100;
           // log(finalKey);
 
           playedNotes += 1;

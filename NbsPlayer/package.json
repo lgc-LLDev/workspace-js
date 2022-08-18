@@ -24,7 +24,7 @@
   },
   "homepage": "https://github.com/lgc2333/LLSEPlugins/tree/main#readme",
   "dependencies": {
-    "@encode42/nbs.js": "^3.0.0"
+    "@encode42/nbs.js": "^4.0.0"
   },
   "devDependencies": {
     "@types/node": "^18.7.5"
