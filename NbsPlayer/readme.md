@@ -38,6 +38,8 @@ BDS 中的 NBS 音乐播放器！
 
 ### 演示
 
+注：此演示为 `0.1.0` 版的播放效果
+
 <https://www.bilibili.com/video/bv1gT41177sm>
 
 <iframe src="//player.bilibili.com/player.html?aid=471512773&bvid=BV1gT41177sm&cid=789620051&page=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>
