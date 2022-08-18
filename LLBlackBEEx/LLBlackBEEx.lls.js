@@ -4,7 +4,7 @@
 /// <reference path="E:\Coding\bds\.vscode\LLSEDevHelper/Library/JS/Api.js" />
 
 const pluginName = 'LLBlackBEEx';
-const pluginVersion = [0, 1, 0];
+const pluginVersion = [0, 1, 1];
 const {
   Red,
   DarkGreen,
@@ -173,6 +173,14 @@ function parseAPIReturn(data) {
 }
 
 /**
+ * ip去端口号
+ * @param {String} ip
+ */
+function stripIp(ip) {
+  return ip.split(':')[0];
+}
+
+/**
  * 检查本地黑名单
  * @returns {Object | null}
  */
@@ -180,19 +188,11 @@ function checkPlayerLocal(pl) {
   const { realName: pName, xuid: pXuid, ip: pIp } = pl;
   for (const i of getLocalBlacklist()) {
     const { name, xuid, ip } = i;
-    if (name === pName || xuid === pXuid || (banIp && ip === pIp)) {
+    if (name === pName || xuid === pXuid || (banIp && ip === stripIp(pIp))) {
       return i;
     }
   }
   return null;
-}
-
-/**
- * ip去端口号
- * @param {String} ip
- */
-function stripIp(ip) {
-  return ip.split(':')[0];
 }
 
 /**
@@ -521,8 +521,8 @@ function trimQuote(str) {
 
 (() => {
   const cmd = mc.newCommand('ban', '本地封禁玩家', PermType.GameMasters);
-  cmd.mandatory('name', ParamType.RawText);
-  cmd.optional('reason', ParamType.RawText);
+  cmd.mandatory('name', ParamType.String);
+  cmd.optional('reason', ParamType.String);
   cmd.optional('duration', ParamType.Int);
   cmd.overload(['name', 'reason', 'duration']);
   cmd.setCallback((_, __, out, res) => {
