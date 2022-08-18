@@ -45,8 +45,9 @@ const builtInInstruments = new Map([
   [14, 'note.banjo'],
   [15, 'note.pling'],
 ]);
-const playTasks: Map<string, number | boolean> = new Map();
 const bossBarId = 627752937; // NbsPlayer九键(xd
+
+const playTasks: Map<string, NodeJS.Timer | boolean> = new Map();
 
 function readNbs(
   name: string,
@@ -59,16 +60,18 @@ function readNbs(
   });
 }
 
-function stopPlay(xuid: string): boolean {
-  const taskId: unknown = playTasks.get(xuid);
+function stopPlay(xuid: string, setNew?: boolean): boolean {
+  const taskId = playTasks.get(xuid);
   if (taskId) {
-    const ret = playTasks.delete(xuid);
-    if (taskId instanceof Number) clearInterval(taskId);
+    if (typeof taskId === 'object') clearInterval(taskId);
+
+    if (setNew) playTasks.set(xuid, true);
+    else playTasks.delete(xuid);
 
     const pl = mc.getPlayer(xuid);
     if (pl) pl.removeBossBar(bossBarId);
 
-    return ret;
+    return true;
   }
   return false;
 }
@@ -108,9 +111,8 @@ function getPlaySoundDataPack(
 function startPlay(player: Player, nbsName: string) {
   const { xuid } = player;
   const playingTask = playTasks.get(xuid);
-  if (playingTask) stopPlay(xuid);
+  if (playingTask) stopPlay(xuid, true);
 
-  playTasks.set(xuid, true);
   player.setBossBar(bossBarId, `${Green}解析nbs文件……`, 100, 4);
 
   readNbs(nbsName, (ok, ret) => {
@@ -125,7 +127,7 @@ function startPlay(player: Player, nbsName: string) {
       errors,
       meta: { name, author, originalAuthor },
       length,
-      instruments,
+      instruments: { loaded: loadedIns },
       layers,
       timePerTick,
     } = ret;
@@ -191,7 +193,7 @@ function startPlay(player: Player, nbsName: string) {
             key: insKey,
             builtIn,
             meta: { name: insName },
-          } = instruments.loaded[instrument];
+          } = loadedIns[instrument];
           const { pos } = pl;
 
           pos.y += 0.37;
@@ -204,7 +206,7 @@ function startPlay(player: Player, nbsName: string) {
               bs,
               (builtIn ? builtInInstruments.get(instrument) : insName) || '',
               pos,
-              ((velocity || 100) / 100) * (volume / 100),
+              (velocity / 100) * (volume / 100),
               2 ** ((finalKey - 45) / 12)
             )
           );
