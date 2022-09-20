@@ -1,10 +1,10 @@
 /* eslint-disable no-restricted-syntax */
 /* global ll JsonConfigFile logger mc data Format network PermType ParamType */
 // LiteLoaderScript Dev Helper
-/// <reference path="E:\Coding\bds\.vscode\LLSEDevHelper/Library/JS/Api.js" />
+/// <reference path="c:\Users\Administrator\Desktop\llse\LLSEPlugins\.vscode\Library/dts/llaids/src/index.d.ts"/>
 
 const pluginName = 'LLBlackBEEx';
-const pluginVersion = [0, 1, 2];
+const pluginVersion = [0, 1, 3];
 const {
   Red,
   DarkGreen,
@@ -23,6 +23,7 @@ const config = new JsonConfigFile(`plugins/${pluginName}/config.json`);
 const apiToken = config.init('apiToken', '');
 const banIp = config.init('banIp', true);
 const hidePassMessage = config.init('hidePassMessage', false);
+const disableBlackBE = config.init('disableBlackBE', false);
 const kickByLocalMsg = config.init(
   'kickByLocalMsg',
   `${Red}您已被服务器封禁${Clear}\\n\\n` +
@@ -607,22 +608,23 @@ mc.listen('onJoin', (pl) => {
   }
   if (!hidePassMessage) logger.info(`对玩家 ${realName} 的本地黑名单检测通过`);
 
-  simpleCheck(
-    realName,
-    (_, ret) => {
-      if (ret.data.exist) {
-        setTimeout(() => {
-          pl.kick(kickByCloudMsg);
-        }, 0);
-        logger.warn(`检测到玩家 ${realName} 存在云端封禁记录，已踢出`);
-        return;
-      }
-      if (!hidePassMessage)
-        logger.info(`对玩家 ${realName} 的云端黑名单检测通过`);
-    },
-    null,
-    xuid
-  );
+  if (!disableBlackBE)
+    simpleCheck(
+      realName,
+      (_, ret) => {
+        if (ret.data.exist) {
+          setTimeout(() => {
+            pl.kick(kickByCloudMsg);
+          }, 0);
+          logger.warn(`检测到玩家 ${realName} 存在云端封禁记录，已踢出`);
+          return;
+        }
+        if (!hidePassMessage)
+          logger.info(`对玩家 ${realName} 的云端黑名单检测通过`);
+      },
+      null,
+      xuid
+    );
 });
 
 ll.registerPlugin(pluginName, 'BlackBE云黑插件Ex', pluginVersion, {

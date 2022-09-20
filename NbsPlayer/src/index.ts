@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/triple-slash-reference */
 /* global ll mc Format PermType ParamType BinaryStream Packet Command CommandOrigin CommandOutput */
 // LiteLoaderScript Dev Helper
-/// <reference path="C:\Users\Administrator\.vscode\extensions\moxicat.llscripthelper-1.0.1\lib\Library/JS/Api.js" />
+/// <reference path="c:/Users\Administrator\Desktop\git\LLseHelper/JS/HelperLib-master/src/index.d.ts"/>
 
 import * as fs from 'fs';
 import { fromArrayBuffer, Layer, Note, Song } from '@encode42/nbs.js';

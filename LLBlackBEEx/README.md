@@ -40,6 +40,9 @@ BlackBE 站长：NyanCatda [云黑官网](https://blackbe.xyz) [赞助云黑](ht
   // 是否隐藏玩家通过黑名单检测日志
   "hidePassMessage": 0,
 
+  // 是否禁用入服 BlackBE 云端黑名单检测
+  "disableBlackBE": 0,
+
   // 当玩家在本地黑名单内时踢出显示的文本
   // 可用变量：
   // %ENDTIME% 解封时间
@@ -77,5 +80,7 @@ QQ：3076823485
   - 修复可能的 ip 封禁 bug
 - 0.1.2
   - 修复关于 BlackBE 的一些 bug
+- 0.1.3
+  - 更新`disableBlackBE`配置用于禁用入服`BlackBE`违规记录检测
 
 ## 文档待完善，插件写得急，来不及写文档了，赶紧发出来给大家用用嘛 qwq
