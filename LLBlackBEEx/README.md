@@ -51,7 +51,10 @@ BlackBE 站长：NyanCatda [云黑官网](https://blackbe.xyz) [赞助云黑](ht
 
   // 当玩家在BlackBE中存在违规记录时踢出显示的文本
   // 无可用变量
-  "kickByCloudMsg": "§c您已被BlackBE云端黑名单封禁\n\n详情请访问 §6https://blackbe.xyz/"
+  "kickByCloudMsg": "§c您已被BlackBE云端黑名单封禁\n\n详情请访问 §6https://blackbe.xyz/",
+
+  // 是否使用BlackBEAPI镜像站（blackbe.lgc2333.top）
+  "useMirrorBlackBEUrl": 0
 }
 ```
 
@@ -82,5 +85,8 @@ QQ：3076823485
   - 修复关于 BlackBE 的一些 bug
 - 0.1.3
   - 更新`disableBlackBE`配置用于禁用入服`BlackBE`违规记录检测
+- 0.1.4
+  - 修复 BlackBE 检测失败问题
+  - 新增`useMirrorBlackBEUrl`配置项，如果 BlackBE 依然检测失败可以试试开启这个
 
 ## 文档待完善，插件写得急，来不及写文档了，赶紧发出来给大家用用嘛 qwq

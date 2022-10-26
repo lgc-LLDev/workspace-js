@@ -1,10 +1,10 @@
 /* eslint-disable no-restricted-syntax */
 /* global ll JsonConfigFile logger mc data Format network PermType ParamType */
-// LiteLoaderScript Dev Helper
-/// <reference path="c:\Users\Administrator\Desktop\llse\LLSEPlugins\.vscode\Library/dts/llaids/src/index.d.ts"/>
+//LiteLoaderScript Dev Helper
+/// <reference path="d:\Coding\LLSEAids/dts/llaids/src/index.d.ts"/>
 
 const pluginName = 'LLBlackBEEx';
-const pluginVersion = [0, 1, 3];
+const pluginVersion = [0, 1, 4];
 const {
   Red,
   DarkGreen,
@@ -17,7 +17,6 @@ const {
   Bold,
   Clear,
 } = Format;
-const BLACKBE_API_PREFIX = 'https://api.blackbe.xyz/openapi/v3/';
 
 const config = new JsonConfigFile(`plugins/${pluginName}/config.json`);
 const apiToken = config.init('apiToken', '');
@@ -34,36 +33,21 @@ const kickByCloudMsg = config.init(
   `${Red}您已被BlackBE云端黑名单封禁${Clear}\\n\\n` +
     `详情请访问 ${Gold}https://blackbe.xyz/`
 );
+const useMirrorBlackBEUrl = config.init('useMirrorBlackBEUrl', false);
+
+const BLACKBE_API_PREFIX = `https://${
+  useMirrorBlackBEUrl ? 'blackbe.lgc2333.top' : 'api.blackbe.xyz'
+}/openapi/v3/`;
 
 const localBlacklist = new JsonConfigFile(
   `plugins/${pluginName}/local_list.json`
 );
 localBlacklist.init('list', []);
 
-const headers = {
-  accept: '*/*',
-  'accept-encoding': 'gzip, deflate, br',
-  'accept-language': 'zh-CN,zh-TW;q=0.9,zh;q=0.8,en;q=0.7',
-  authorization: apiToken ? `Bearer ${apiToken}` : '',
-  'cache-control': 'max-age=0',
-  connection: 'keep-alive',
-  'sec-ch-ua':
-    '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"',
-  'sec-ch-ua-mobile': '?0',
-  'sec-ch-ua-platform': '"Windows"',
-  'sec-fetch-dest': 'document',
-  'sec-fetch-mode': 'navigate',
-  'sec-fetch-site': 'same-site',
-  'sec-fetch-user': '?1',
-  'upgrade-insecure-requests': '1',
-  'user-agent':
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36',
-};
-
 logger.setTitle(pluginName);
 logger.setConsole(true);
 logger.setFile(`./logs/${pluginName}.log`, 4);
-// logger.setLogLevel(5)
+// logger.setLogLevel(5);
 
 const privRespName = new Map([['1', '公有库']]);
 
@@ -337,12 +321,11 @@ function parseResult(query, retOpen, retPriv) {
 
 /**
  * @param {String} url
- * @param {Object} headers
  * @returns {Promise}
  */
 function asyncHttpGet(url, noAuth = false) {
-  const header = { ...headers }; // copy
-  if (noAuth || !header.authorization) delete header.authorization;
+  const header = {};
+  if (!noAuth) header.authorization = `Bearer ${apiToken}`;
   return new Promise((resolve) => {
     network.httpGet(url, header, (code, resp) => resolve({ code, resp }));
   });
@@ -356,8 +339,8 @@ function asyncHttpGet(url, noAuth = false) {
  * @returns {Promise}
  */
 function asyncHttpPost(url, data, noAuth = false, type = 'application/json') {
-  const header = { ...headers }; // copy
-  if (noAuth || !header.authorization) delete header.authorization;
+  const header = {};
+  if (!noAuth) header.authorization = `Bearer ${apiToken}`;
   return new Promise((resolve) => {
     network.httpPost(url, header, data, type, (code, resp) =>
       resolve({ code, resp })
@@ -389,6 +372,7 @@ function simpleCheck(name, callback, qq = null, xuid = null) {
   asyncHttpGet(`${BLACKBE_API_PREFIX}${methodName}${params}`)
     .then((r) => {
       const { code, resp } = r;
+      logger.debug(code);
       logger.debug(resp);
       callback(code, JSON.parse(resp));
     })
