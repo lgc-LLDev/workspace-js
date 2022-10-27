@@ -2,6 +2,6 @@
 **/dist/**
 /index.js
 /package-lock.json
-/package.json
+# /package.json
 .vscode/**
 /private/
