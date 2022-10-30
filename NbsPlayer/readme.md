@@ -36,14 +36,6 @@ BDS 中的 NBS 音乐播放器！
 ![3](readme/3.png)  
 ![4](readme/4.png)
 
-### 演示
-
-注：此演示为 `0.1.0` 版的播放效果
-
-<https://www.bilibili.com/video/bv1gT41177sm>
-
-<iframe src="//player.bilibili.com/player.html?aid=471512773&bvid=BV1gT41177sm&cid=789620051&page=1" scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"> </iframe>
-
 ### 指令
 
 #### `nbsplayer` - 打开插件菜单 / 播放指定音乐
@@ -105,7 +97,7 @@ QQ：3076823485
 - <details>
     <summary>赞助二维码（点击展开）</summary>
 
-  ![讨饭](https://raw.githubusercontents.com/lgc2333/ShigureBotMenu/master/src/imgs/sponsor.png)
+  ![讨饭](https://raw.githubusercontent.com/lgc2333/ShigureBotMenu/master/src/imgs/sponsor.png)
 
   </details>
 
