@@ -2,10 +2,10 @@
 /* eslint-disable @typescript-eslint/triple-slash-reference */
 /* global ll mc Format PermType ParamType BinaryStream Packet Command CommandOrigin CommandOutput */
 // LiteLoaderScript Dev Helper
-/// <reference path="c:/Users\Administrator\Desktop\git\LLseHelper/JS/HelperLib-master/src/index.d.ts"/>
+/// <reference path="d:\Coding\LLSEAids/dts/llaids/src/index.d.ts"/>
 
 import * as fs from 'fs';
-import { fromArrayBuffer, Layer, Note, Song } from '@encode42/nbs.js';
+import { fromArrayBuffer, Song } from '@encode42/nbs.js';
 
 const pluginName = 'NbsPlayer';
 const pluginDataPath = `plugins/${pluginName}/`;
@@ -76,17 +76,6 @@ function stopPlay(xuid: string, setNew?: boolean): boolean {
   return false;
 }
 
-/*
-function formatMsTime(msTime: number): string {
-  const ms = (msTime % 1000).toString()[0];
-  const sec = Math.floor((msTime / 1000) % 60)
-    .toString()
-    .padStart(2, '0');
-  const min = Math.floor(msTime / 1000 / 60).toString();
-  return `${min}:${sec}.${ms}`;
-}
-*/
-
 function getPlaySoundDataPack(
   bs: BinaryStream,
   sound: string,
@@ -94,7 +83,6 @@ function getPlaySoundDataPack(
   volume: number,
   pitch: number
 ): Packet {
-  // log(sound, ' | ', position, ' | ', volume, ' | ', pitch);
   bs.reset();
   bs.writeString(sound);
 
@@ -138,24 +126,47 @@ function startPlay(player: Player, nbsName: string) {
       return;
     }
 
-    let songDisplayName = Aqua;
+    let songDisplayName = Aqua as string;
     if (name) {
       songDisplayName += name;
       const displayAuthor = originalAuthor || author;
       if (displayAuthor)
         songDisplayName += `${White} - ${Green}${displayAuthor}`;
     } else songDisplayName += nbsName;
+    const bossBarTxt = `${Green}▶ ${LightPurple}NbsPlayer${Gray} | ${songDisplayName}`;
+
+    // note数据[name, vol, pitch]
+    type ParsedNote = [string | undefined, number, number];
+    type ParsedLayer = Array<ParsedNote>;
+    const parsedNotes: Array<ParsedLayer> = [];
+    for (const layer of layers) {
+      parsedNotes.push(
+        // eslint-disable-next-line no-loop-func
+        layer.notes.map((n) => {
+          const { instrument, velocity, key, pitch } = n;
+          const { volume } = layer;
+          const {
+            key: insKey,
+            builtIn,
+            meta: { soundFile },
+          } = loadedIns[instrument];
+
+          const finalKey = key + (insKey - 45) + pitch / 100;
+          const insName = builtIn
+            ? builtInInstruments.get(instrument)
+            : soundFile.replace(/\.(ogg|mp3|wav)/g, '');
+
+          return [
+            insName,
+            (velocity * volume) / 100,
+            2 ** ((finalKey - 45) / 12),
+          ];
+        })
+      );
+    }
 
     const totalLength = timePerTick * length;
-    // const totalLengthStr = formatMsTime(totalLength);
-    let totalNotes = 0;
-    layers.forEach((l) => {
-      l.notes.forEach((n) => {
-        if (n) totalNotes += 1;
-      });
-    });
 
-    let playedNotes = 0;
     let passedTick = 0;
     let lastBossBarIndex = -1; // boss bar初始为0，设为-1以便初始更新boss bar
     const startTime = Date.now();
@@ -171,72 +182,29 @@ function startPlay(player: Player, nbsName: string) {
       passedTick = nowTick;
 
       const pl = mc.getPlayer(xuid);
-      if ((passedTick >= length && totalNotes >= playedNotes) || !pl) {
+      if (!(parsedNotes[0].length && pl)) {
         stopPlay(xuid);
         return;
       }
 
-      const willPlay: Array<Packet> = [];
-
-      const addWillPlay = (layer: Layer) => {
-        const { notes } = layer;
-        const willPlayNotes: Array<Note> = [];
+      const { pos } = pl;
+      pos.y += 0.37;
+      parsedNotes.forEach((layer: ParsedLayer) => {
         for (let i = 0; i < passedInterval; i += 1) {
-          const n = notes.shift();
-          if (n) willPlayNotes.push(n);
+          const n = layer.shift();
+          if (n) {
+            const [insName, vol, pitch] = n;
+            if (insName)
+              pl.sendPacket(getPlaySoundDataPack(bs, insName, pos, vol, pitch));
+          }
         }
+      });
 
-        willPlayNotes.forEach((n) => {
-          const { instrument, velocity, key, pitch } = n;
-          const { volume } = layer;
-          const {
-            key: insKey,
-            builtIn,
-            meta: { name: insName },
-          } = loadedIns[instrument];
-          const { pos } = pl;
-
-          pos.y += 0.37;
-          const finalKey = key + (insKey - 45) + pitch / 100;
-          // log(finalKey);
-
-          playedNotes += 1;
-          willPlay.push(
-            getPlaySoundDataPack(
-              bs,
-              (builtIn ? builtInInstruments.get(instrument) : insName) || '',
-              pos,
-              (velocity / 100) * (volume / 100),
-              2 ** ((finalKey - 45) / 12)
-            )
-          );
-        });
-      };
-      layers.forEach(addWillPlay);
-
-      willPlay.forEach((p) => pl.sendPacket(p));
-
-      // const timeSpentStr = formatMsTime(timeSpent);
-      const bossBarIndex = Math.round((timeSpent / totalLength) * 100);
+      const bossBarIndex = Math.floor((timeSpent / totalLength) * 100);
       if (bossBarIndex !== lastBossBarIndex) {
         lastBossBarIndex = bossBarIndex;
-        pl.setBossBar(
-          bossBarId,
-          `${Green}▶ ${LightPurple}NbsPlayer${Gray} | ${songDisplayName}`,
-          bossBarIndex,
-          3
-        );
+        pl.setBossBar(bossBarId, bossBarTxt, bossBarIndex, 3);
       }
-      /*
-      pl.tell(
-        `${Green}▶ ${LightPurple}NbsPlayer\n` +
-          `\n` +
-          `${Yellow}${timeSpentStr} ${White}/ ${Gold}${totalLengthStr}` +
-          `${Gray} | ` +
-          `${Yellow}${playedNotes} ${White}/ ${Gold}${totalNotes}`,
-        4
-      );
-      */
     };
 
     playTasks.set(xuid, setInterval(task, 0));
@@ -514,7 +482,7 @@ function trimQuote(str: string) {
 
 mc.listen('onLeft', (pl: Player) => stopPlay(pl.xuid));
 
-ll.registerPlugin(pluginName, '在服务器播放NBS音乐！', [1, 0, 0], {
+ll.registerPlugin(pluginName, '在服务器播放NBS音乐！', [1, 0, 1], {
   Author: 'student_2333',
   License: 'Apache-2.0',
 });
