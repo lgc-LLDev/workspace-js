@@ -4,7 +4,7 @@
 /// <reference path="d:\Coding\LLSEAids/dts/llaids/src/index.d.ts"/>
 
 const pluginName = 'LLBlackBEEx';
-const pluginVersion = [0, 1, 4];
+const pluginVersion = [0, 1, 5];
 const {
   Red,
   DarkGreen,
@@ -65,7 +65,7 @@ function setLocalBlacklist(li) {
 function formatDate(date) {
   const yr = date.getFullYear();
   const mon = date.getMonth() + 1;
-  const day = date.getDay();
+  const day = date.getDate();
   const hr = date.getHours();
   const min = date.getMinutes().toString().padStart(2, '0');
   const sec = date.getSeconds().toString().padStart(2, '0');
