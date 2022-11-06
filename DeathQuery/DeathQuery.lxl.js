@@ -53,7 +53,7 @@ function logDeath(pl, src) {
 function formatDate(date) {
   const yr = date.getFullYear();
   const mon = date.getMonth() + 1;
-  const day = date.getDay();
+  const day = date.getDate();
   const hr = date.getHours();
   const min = date.getMinutes().toString().padStart(2, '0');
   const sec = date.getSeconds().toString().padStart(2, '0');
@@ -216,7 +216,7 @@ mc.listen('onPlayerDie', (pl, src_) => {
 });
 registerCmd();
 
-ll.registerPlugin(pluginName, '自助查询死亡记录', [0, 1, 2], {
+ll.registerPlugin(pluginName, '自助查询死亡记录', [0, 1, 3], {
   Author: 'student_2333',
   License: 'Apache-2.0',
 });

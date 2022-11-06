@@ -60,7 +60,7 @@ function formatPos(pos) {
 function formatDate(date) {
   const yr = date.getFullYear();
   const mon = date.getMonth() + 1;
-  const day = date.getDay();
+  const day = date.getDate();
   const hr = date.getHours();
   const min = date.getMinutes().toString().padStart(2, '0');
   const sec = date.getSeconds().toString().padStart(2, '0');
@@ -341,7 +341,7 @@ function warpManage(pl_) {
   }
 })();
 
-ll.registerPlugin(pluginName, '公共坐标点', [0, 2, 0], {
+ll.registerPlugin(pluginName, '公共坐标点', [0, 2, 1], {
   Author: 'student_2333',
   License: 'Apache-2.0',
 });

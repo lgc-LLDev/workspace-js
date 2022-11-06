@@ -60,7 +60,7 @@ function formatPos(pos) {
 function formatDate(date) {
   const yr = date.getFullYear();
   const mon = date.getMonth() + 1;
-  const day = date.getDay();
+  const day = date.getDate();
   const hr = date.getHours();
   const min = date.getMinutes().toString().padStart(2, '0');
   const sec = date.getSeconds().toString().padStart(2, '0');

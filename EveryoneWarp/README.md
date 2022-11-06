@@ -94,3 +94,5 @@ QQ：3076823485
   - **2022.7.28 更新**
     - 适配旧版 lxl
     - [`NavigationAPI` Bug 修复](../NavigationAPI/README.md#更新日志)
+- 0.2.1
+  - 修复天数显示错误
