@@ -356,14 +356,14 @@ function processGroupMsg(ev) {
 
     // 执行指令
     if (txtMsg.startsWith(config.get('cmd_prefix'))) {
+      const cmd = txtMsg.slice(config.get('cmd_prefix').length);
       if (
         config
           .get('superusers')
           .map((i) => i.toString())
-          .includes(userId.toString())
+          .includes(userId.toString()) ||
+        cmd === 'list'
       ) {
-        const cmd = txtMsg.slice(1);
-
         const { success, output } = mc.runcmdEx(cmd);
         const stateTxt = success ? '成功' : '失败';
         fastReply(`执行${stateTxt}\n${output}`);
@@ -603,7 +603,7 @@ mc.regConsoleCmd('cqreconnect', '手动重连GoCQHTTP', () => {
   return reconnectGoCQ();
 });
 
-ll.registerPlugin('GoCQSync', '依赖GoCQHTTP的群服互通', [0, 4, 0], {
+ll.registerPlugin('GoCQSync', '依赖GoCQHTTP的群服互通', [0, 4, 1], {
   Author: 'student_2333',
   License: 'Apache-2.0',
 });
