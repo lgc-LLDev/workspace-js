@@ -1,7 +1,7 @@
 /* global JsonConfigFile WSClient mc ll logger Format */
 
 // LiteLoaderScript Dev Helper
-/// <reference path="E:\Coding\bds\.vscode\LLSEDevHelper/Library/JS/Api.js" />
+/// <reference path="c:\Users\Administrator\Desktop\llse\LLSEPlugins\.vscode\Library/dts/llaids/src/index.d.ts"/>
 
 // 控制台颜色控制符
 const conGreen = '\u001b[0;32m';
@@ -20,6 +20,7 @@ config.init('enable_groups', ['']);
 config.init('log_level', 4);
 config.init('cmd_prefix', '/');
 config.init('cmd_status', '查询');
+config.init('allow_cmd', ['^list$']);
 
 const ws = new WSClient();
 const reqCache = new Map();
@@ -311,6 +312,18 @@ ${playerLi
 }
 
 /**
+ * @param {string} cmd
+ * @returns {boolean}
+ */
+function isAllowedCmd(cmd) {
+  const allowed = config.get('allow_cmd');
+  for (const reg of allowed) {
+    if (RegExp(reg).test(cmd)) return true;
+  }
+  return false;
+}
+
+/**
  * 群消息处理
  * @param {object} ev
  */
@@ -362,7 +375,7 @@ function processGroupMsg(ev) {
           .get('superusers')
           .map((i) => i.toString())
           .includes(userId.toString()) ||
-        cmd === 'list'
+        isAllowedCmd(cmd)
       ) {
         const { success, output } = mc.runcmdEx(cmd);
         const stateTxt = success ? '成功' : '失败';
@@ -603,7 +616,7 @@ mc.regConsoleCmd('cqreconnect', '手动重连GoCQHTTP', () => {
   return reconnectGoCQ();
 });
 
-ll.registerPlugin('GoCQSync', '依赖GoCQHTTP的群服互通', [0, 4, 1], {
+ll.registerPlugin('GoCQSync', '依赖GoCQHTTP的群服互通', [0, 4, 2], {
   Author: 'student_2333',
   License: 'Apache-2.0',
 });
