@@ -1,0 +1,32 @@
+{
+  "name": "yet-another-custom-get-map",
+  "version": "0.1.0",
+  "description": "Yet another LLSE CustomGetMap plugin.",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "rollup -c ./rollup.config.mjs",
+    "watch": "rollup -c ./rollup.config.mjs --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lgc2333/LLSEPlugins.git"
+  },
+  "author": "student_2333 <lgc2333@126.com>",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/lgc2333/LLSEPlugins/issues"
+  },
+  "homepage": "https://github.com/lgc2333/LLSEPlugins#readme",
+  "devDependencies": {
+    "@rollup/plugin-json": "^5.0.1",
+    "@rollup/plugin-terser": "^0.1.0",
+    "@rollup/plugin-typescript": "^9.0.2",
+    "@types/rimraf": "^3.0.2",
+    "@types/sharp": "^0.31.0",
+    "rollup": "^3.4.0"
+  },
+  "dependencies": {
+    "jimp": "^0.16.2"
+  }
+}

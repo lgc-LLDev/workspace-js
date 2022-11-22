@@ -22,7 +22,9 @@
     "import/extensions": "off",
     "no-shadow": "off",
     "@typescript-eslint/no-shadow": "error",
-    "no-restricted-syntax":"off"
+    "no-restricted-syntax": "off",
+    "no-param-reassign": "off",
+    "no-bitwise": "off"
   },
   "settings": {
     "import/resolver": {

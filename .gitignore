@@ -1,7 +1,8 @@
-**/node_modules/**
-**/dist/**
+node_modules/
+dist/
 /index.js
-/package-lock.json
+package-lock.json
 # /package.json
-.vscode/**
+.vscode/
 /private/
+test.*
