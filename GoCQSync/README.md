@@ -1,8 +1,8 @@
-<!-- markdownlint-disable MD031 MD033 -->
+<!-- markdownlint-disable MD031 MD033 MD036 -->
 
 # GoCQSync
 
-**项目暂停更新，请使用nodejs版ll的用户移步 [QBotForLiteloader](https://github.com/yanhy2000/QBotForLiteloader)**
+**目前已不推荐使用本插件，请移步 YoyoRobot、QBotForLiteLoader 等插件**
 
 一个依赖 [GoCQHTTP](https://github.com/Mrs4s/go-cqhttp) 的群服互通插件
 
@@ -98,15 +98,17 @@
   "enable_groups": ["987654321"],
 
   // 日志输出等级：Number
-  // 见 https://docs.litebds.com/#/zh_CN/Development/ScriptAPI/Logger?id=%e6%a6%82%e5%bf%b5%ef%bc%9a%e5%85%b3%e4%ba%8e%e6%97%a5%e5%bf%97%e8%be%93%e5%87%ba%e7%ad%89%e7%ba%a7
-  // 本插件只会输出 ERROR INFO DEBUG 等级的日志，一般情况保持默认即可
+  // 一般情况保持默认即可
   "log_level": 4,
 
   // 管理员执行控制台指令的消息前缀
   "cmd_prefix": "/",
 
   // 查询服务器状态指令（与戳一戳相同）
-  "cmd_status": "查询"
+  "cmd_status": "查询",
+
+  // 群聊中非 superuser 可以执行的指令，使用正则表达式匹配
+  "allow_cmd": ["^list$"]
 }
 ```
 
@@ -161,5 +163,9 @@ QQ：3076823485
   - 修复正则匹配 CQ 码
 - 0.4.0
   - 添加配置项`cmd_prefix`、`cmd_status`，详情见[配置文件](#配置文件)
+- 0.4.1
+  - 修复`cmd_prefix`长度大于 1 时出现的问题
+- 0.4.2
+  - 添加配置项`allow_cmd`
 
 ## 文档待完善 (\*σ´∀`)σ
