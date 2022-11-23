@@ -584,31 +584,37 @@ mc.listen('onChat', (player, msg) => {
  * 尝试进服提示
  */
 mc.listen('onPreJoin', (player) => {
-  (async () => {
-    const { realName, xuid } = player;
-    sendToAllEnableGroups(
-      `[服务器] ${realName} 正在尝试进入服务器，XUID：${xuid}`
-    );
-  })().catch(throwError);
+  if (!player.isSimulatedPlayer()) {
+    (async () => {
+      const { realName, xuid } = player;
+      sendToAllEnableGroups(
+        `[服务器] ${realName} 正在尝试进入服务器，XUID：${xuid}`
+      );
+    })().catch(throwError);
+  }
 });
 
 /**
  * 进服提示
  */
 mc.listen('onJoin', (player) => {
-  (async () => {
-    sendToAllEnableGroups(`[服务器] 欢迎 ${player.realName} 进入服务器`);
-  })().catch(throwError);
+  if (!player.isSimulatedPlayer()) {
+    (async () => {
+      sendToAllEnableGroups(`[服务器] 欢迎 ${player.realName} 进入服务器`);
+    })().catch(throwError);
+  }
 });
 
 /**
  * 退服提示
  */
 mc.listen('onLeft', (player) => {
-  const { realName } = player;
-  (async () => {
-    sendToAllEnableGroups(`[服务器] ${realName} 退出了服务器`);
-  })().catch(throwError);
+  if (!player.isSimulatedPlayer()) {
+    const { realName } = player;
+    (async () => {
+      sendToAllEnableGroups(`[服务器] ${realName} 退出了服务器`);
+    })().catch(throwError);
+  }
 });
 
 mc.regConsoleCmd('cqreconnect', '手动重连GoCQHTTP', () => {
@@ -616,7 +622,7 @@ mc.regConsoleCmd('cqreconnect', '手动重连GoCQHTTP', () => {
   return reconnectGoCQ();
 });
 
-ll.registerPlugin('GoCQSync', '依赖GoCQHTTP的群服互通', [0, 4, 2], {
+ll.registerPlugin('GoCQSync', '依赖GoCQHTTP的群服互通', [0, 4, 3], {
   Author: 'student_2333',
   License: 'Apache-2.0',
 });
