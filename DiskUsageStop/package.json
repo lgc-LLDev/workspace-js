@@ -1,0 +1,22 @@
+{
+  "name": "disk-usage-stop",
+  "version": "0.1.0",
+  "description": "A LLSE plugin stops your server when the current disk part usage attaches the limit",
+  "main": "index.cjs",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lgc2333/LLSEPlugins.git"
+  },
+  "author": "student_2333 <lgc2333@126.com>",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/lgc2333/LLSEPlugins/issues"
+  },
+  "homepage": "https://github.com/lgc2333/LLSEPlugins#readme",
+  "dependencies": {
+    "check-disk-space": "^3.3.1"
+  }
+}

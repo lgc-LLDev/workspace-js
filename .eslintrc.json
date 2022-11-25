@@ -24,7 +24,9 @@
     "@typescript-eslint/no-shadow": "error",
     "no-restricted-syntax": "off",
     "no-param-reassign": "off",
-    "no-bitwise": "off"
+    "no-bitwise": "off",
+    "@typescript-eslint/no-var-requires": "off",
+    "no-console": "off"
   },
   "settings": {
     "import/resolver": {
