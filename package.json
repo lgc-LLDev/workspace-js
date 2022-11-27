@@ -21,6 +21,10 @@
     "eslint-config-airbnb": "^19.0.4",
     "eslint-config-prettier": "^8.5.0",
     "eslint-import-resolver-typescript": "^3.5.2",
-    "eslint-plugin-import": "^2.26.0"
+    "eslint-plugin-import": "^2.26.0",
+    "rollup": "^3.4.0",
+    "@rollup/plugin-json": "^5.0.1",
+    "@rollup/plugin-terser": "^0.1.0",
+    "@rollup/plugin-typescript": "^9.0.2"
   }
 }

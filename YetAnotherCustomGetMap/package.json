@@ -5,8 +5,8 @@
   "main": "dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "rollup -c ./rollup.config.mjs",
-    "watch": "rollup -c ./rollup.config.mjs --watch"
+    "build": "rollup -c ../rollup.config.mjs",
+    "watch": "rollup -c ../rollup.config.mjs --watch"
   },
   "repository": {
     "type": "git",
@@ -18,14 +18,6 @@
     "url": "https://github.com/lgc2333/LLSEPlugins/issues"
   },
   "homepage": "https://github.com/lgc2333/LLSEPlugins#readme",
-  "devDependencies": {
-    "@rollup/plugin-json": "^5.0.1",
-    "@rollup/plugin-terser": "^0.1.0",
-    "@rollup/plugin-typescript": "^9.0.2",
-    "@types/rimraf": "^3.0.2",
-    "@types/sharp": "^0.31.0",
-    "rollup": "^3.4.0"
-  },
   "dependencies": {
     "jimp": "^0.16.2"
   }

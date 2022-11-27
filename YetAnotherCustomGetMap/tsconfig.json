@@ -1,6 +1,5 @@
 {
   "extends": "../tsconfig.json",
-  "exclude": ["./rollup.config.mjs"],
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": "./",
