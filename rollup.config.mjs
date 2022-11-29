@@ -3,7 +3,7 @@ import typescript from '@rollup/plugin-typescript';
 import json from '@rollup/plugin-json';
 // import resolve from '@rollup/plugin-node-resolve';
 // import cjs from '@rollup/plugin-commonjs';
-import terser from '@rollup/plugin-terser';
+// import terser from '@rollup/plugin-terser';
 
 export default {
   input: 'src/index.ts',
@@ -11,6 +11,7 @@ export default {
     file: 'dist/index.js',
     format: 'cjs',
     inlineDynamicImports: true,
+    // sourcemap: true,
   },
-  plugins: [json(), typescript(), terser()],
+  plugins: [json(), typescript() /* terser() */],
 };

@@ -1,0 +1,29 @@
+{
+  "name": "onebot-bridge",
+  "version": "0.1.0",
+  "description": "The bridge of OneBot and BDS.",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "rollup -c ../rollup.config.mjs",
+    "watch": "rollup -c ../rollup.config.mjs --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lgc2333/LLSEPlugins.git"
+  },
+  "author": "student_2333 <lgc2333@126.com>",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/lgc2333/LLSEPlugins/issues"
+  },
+  "homepage": "https://github.com/lgc2333/LLSEPlugins#readme",
+  "dependencies": {
+    "@koishijs/plugin-adapter-onebot": "^5.4.3",
+    "koishi": "^4.10.3",
+    "mustache": "^4.2.0"
+  },
+  "devDependencies": {
+    "@types/mustache": "^4.2.2"
+  }
+}

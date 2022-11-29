@@ -1,7 +1,7 @@
 /* global JsonConfigFile WSClient mc ll logger Format */
 
 // LiteLoaderScript Dev Helper
-/// <reference path="c:\Users\Administrator\Desktop\llse\LLSEPlugins\.vscode\Library/dts/llaids/src/index.d.ts"/>
+/// <reference path="d:\Coding\LLSEAids/dts/llaids/src/index.d.ts"/>
 
 // 控制台颜色控制符
 const conGreen = '\u001b[0;32m';

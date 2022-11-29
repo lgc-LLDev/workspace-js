@@ -6,3 +6,4 @@ package-lock.json
 .vscode/
 /private/
 test.*
+*.llplugin
