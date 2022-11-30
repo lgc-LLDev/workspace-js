@@ -1,10 +1,10 @@
 /* eslint-disable no-restricted-syntax */
 /* global ll JsonConfigFile logger mc data Format network PermType ParamType */
-//LiteLoaderScript Dev Helper
+// LiteLoaderScript Dev Helper
 /// <reference path="d:\Coding\LLSEAids/dts/llaids/src/index.d.ts"/>
 
 const pluginName = 'LLBlackBEEx';
-const pluginVersion = [0, 1, 5];
+const pluginVersion = [0, 1, 6];
 const {
   Red,
   DarkGreen,
@@ -579,6 +579,8 @@ function trimQuote(str) {
 })();
 
 mc.listen('onJoin', (pl) => {
+  if (pl.isSimulatedPlayer()) return;
+
   const { realName, xuid } = pl;
   if (!hidePassMessage) logger.info(`正在对玩家 ${realName} 进行黑名单检测……`);
 
