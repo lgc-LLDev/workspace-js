@@ -3,32 +3,45 @@
 
 import '@koishijs/plugin-adapter-onebot';
 
-import { Awaitable, Context, Dict, h, Render, Schema, Session } from 'koishi';
+import {
+  Awaitable,
+  Context,
+  Dict,
+  h,
+  Logger,
+  Render,
+  Schema,
+  Session,
+} from 'koishi';
 import mustache from 'mustache';
 import { isAsyncFunction } from 'util/types';
+import kleur from 'kleur';
 
 import { Config, TransRule } from './types';
 
 export const name = 'OneBotBridge';
 
 export const configSchema: Schema<Config> = Schema.object({
-  superusers: Schema.array(Schema.number()).required(),
-  enableGroups: Schema.array(Schema.number()).required(),
-  cmdPrefix: Schema.string().required(),
-  cmdStatus: Schema.string().required(),
-  pokeStatus: Schema.boolean().required(),
-  allowCmd: Schema.array(Schema.string()).required(),
-  playerChatTemplate: Schema.string().required(),
-  groupChatTemplate: Schema.string().required(),
-  playerPreJoinTemplate: Schema.string().required(),
-  playerJoinTemplate: Schema.string().required(),
-  playerLeftTemplate: Schema.string().required(),
-  playerDieTemplate: Schema.string().required(),
-  specialAttrPrefix: Schema.string().required(),
-  specialAttrSuffix: Schema.string().required(),
+  superusers: Schema.array(Schema.number()).default([]),
+  enableGroups: Schema.array(Schema.number()).default([]),
+  cmdPrefix: Schema.string().default('/'),
+  cmdStatus: Schema.string().default('查询'),
+  pokeStatus: Schema.boolean().default(true),
+  allowCmd: Schema.array(Schema.string()).default([]),
+  playerChatTemplate: Schema.string(),
+  groupChatTemplate: Schema.string(),
+  playerPreJoinTemplate: Schema.string(),
+  playerJoinTemplate: Schema.string(),
+  playerLeftTemplate: Schema.string(),
+  playerDieTemplate: Schema.string(),
+  specialAttrPrefix: Schema.string(),
+  specialAttrSuffix: Schema.string(),
 });
 
 export function apply(ctxOriginal: Context, config: Config) {
+  config = configSchema(config);
+  const logger = new Logger(name);
+
   const ctx = ctxOriginal
     .platform('onebot')
     .channel(...config.enableGroups.map(String))
@@ -122,6 +135,16 @@ export function apply(ctxOriginal: Context, config: Config) {
     return rules;
   })();
 
+  function isRestrictedCmd(cmd: string): boolean {
+    for (const regTxt of config.allowCmd)
+      if (RegExp(regTxt).test(cmd)) return true;
+    return false;
+  }
+
+  function replaceColorChar(txt: string): string {
+    return txt.replace(/§[0123456789abcdefglonmkr]/g, '');
+  }
+
   function broadcastMsg(
     content: string,
     groups: (string | number)[] = config.enableGroups
@@ -131,13 +154,37 @@ export function apply(ctxOriginal: Context, config: Config) {
   }
 
   ctx.on('message', async (session: Session) => {
-    const { groupChatTemplate } = config;
+    const { content } = session;
+    const { groupChatTemplate, cmdPrefix, superusers } = config;
+
+    const txtContent = h
+      .select(content, 'text')
+      .map((x) => x.attrs.content)
+      .join(' ');
+
+    // 执行指令
+    if (txtContent.startsWith(cmdPrefix)) {
+      const cmd = txtContent.replace(cmdPrefix, ''); // js里只会替换一次
+
+      if (superusers.includes(Number(session.userId)) || isRestrictedCmd(cmd)) {
+        const res = mc.runcmdEx(cmd);
+        const { success } = res;
+        const output = replaceColorChar(res.output);
+
+        const successTxt = success ? '成功' : '失败';
+        logger.info(
+          `执行指令 ${kleur.cyan(cmd)} ` +
+            `${(success ? kleur.green : kleur.red)(successTxt)}\n${output}`
+        );
+        session.send(`执行${successTxt}\n${output}`);
+      } else {
+        session.send('权限不足');
+      }
+    }
+
+    // 群消息转服务器
     if (groupChatTemplate) {
-      let message = await h.transformAsync(
-        session.content,
-        transformMsgRules,
-        session
-      );
+      let message = await h.transformAsync(content, transformMsgRules, session);
       if (session.quote)
         message = `${addHeadAndTail(await translateReply(session))} ${message}`;
 

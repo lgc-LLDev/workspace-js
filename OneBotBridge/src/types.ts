@@ -7,14 +7,14 @@ export interface Config {
   cmdStatus: string;
   pokeStatus: boolean;
   allowCmd: string[];
-  playerChatTemplate: string;
-  groupChatTemplate: string;
-  playerPreJoinTemplate: string;
-  playerJoinTemplate: string;
-  playerLeftTemplate: string;
-  playerDieTemplate: string;
-  specialAttrPrefix: string;
-  specialAttrSuffix: string;
+  playerChatTemplate?: string;
+  groupChatTemplate?: string;
+  playerPreJoinTemplate?: string;
+  playerJoinTemplate?: string;
+  playerLeftTemplate?: string;
+  playerDieTemplate?: string;
+  specialAttrPrefix?: string;
+  specialAttrSuffix?: string;
 }
 
 export type AsyncFunction<A extends Array<unknown>, O> = (

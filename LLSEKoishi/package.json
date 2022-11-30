@@ -1,7 +1,7 @@
 {
   "name": "llse-koishi",
   "version": "0.1.0",
-  "description": "The bridge of QQ and BDS.",
+  "description": "A Koishi.js Launcher for LLSE",
   "main": "dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

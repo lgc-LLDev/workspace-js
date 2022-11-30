@@ -33,6 +33,7 @@ LLSEKoishi 将会自动安装插件文件夹下所有 Koishi 插件 `package.jso
 - 你可以在控制台中 npm install 再修改配置文件来安装其他 Koishi 插件
 - 目前 LLSEKoishi 还不支持原生 Koishi 的一部分插件（包括 `console`），所以没有预装，如果有人能想办法适配，欢迎 PR ！
 - LLSEKoishi 目前不能热重载，因为启动 Koishi 之后没法监听插件是否被卸载，导致 Koishi 依然在运行且占用着端口
+- 目前 LLSEKoishi 的部分特性与原生 Koishi 有差异，请各位稍微注意
 
 ## 联系我
 

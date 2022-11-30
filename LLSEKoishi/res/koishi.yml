@@ -44,7 +44,7 @@ plugins:
       specialAttrPrefix: §b[ # 格式化QQ特殊消息的前缀
       specialAttrSuffix: §b]§r # 格式化QQ特殊消息的后缀
 
-      #### 自定义消息格式化模板 变量用 {{ }} 括起来 设为 false 可以忽略该事件
+      #### 自定义消息格式化模板 变量用 {{ }} 括起来 设为空字符串 '' 可以忽略该事件
       #### 插件使用 mustache.js 渲染变量
       # 服务器消息转群模板
       # - player：LLSE 玩家对象
