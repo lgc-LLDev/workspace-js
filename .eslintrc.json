@@ -26,7 +26,8 @@
     "no-param-reassign": "off",
     "no-bitwise": "off",
     "@typescript-eslint/no-var-requires": "off",
-    "no-console": "off"
+    "no-console": "off",
+    "no-continue": "off"
   },
   "settings": {
     "import/resolver": {

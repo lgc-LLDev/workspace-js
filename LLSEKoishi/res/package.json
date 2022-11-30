@@ -1,0 +1,23 @@
+{
+  "name": "llse-koishi-plugins",
+  "version": "0.1.0",
+  "description": "LLSEKoishi's Plugin Folder",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lgc2333/LLSEPlugins.git"
+  },
+  "author": "student_2333 <lgc2333@126.com>",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/lgc2333/LLSEPlugins/issues"
+  },
+  "homepage": "https://github.com/lgc2333/LLSEPlugins#readme",
+  "dependencies": {},
+  "workspaces": [
+    "./*"
+  ]
+}

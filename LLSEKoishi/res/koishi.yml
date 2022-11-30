@@ -73,6 +73,4 @@ plugins:
       # - player：LLSE玩家对象
       # - source：LLSE实体对象，或为空
       playerDieTemplate: >
-        [服务器] {{player.realName}}
-        {{#source}}被 {{source.name}} 残害{{/source}}
-        {{^source}}暴毙了{{/source}}
+        [服务器] {{player.realName}} {{#source}}被 {{source.name}} 残害{{/source}}{{^source}}暴毙了{{/source}}
