@@ -1,5 +1,10 @@
 import { Render, Session } from 'koishi';
 
+export interface CustomRegex {
+  from: { type: string; regex: string; superuser?: boolean }[];
+  actions: { type: string; content: string }[];
+}
+
 export interface Config {
   superusers: number[];
   enableGroups: number[];
@@ -13,8 +18,10 @@ export interface Config {
   playerJoinTemplate?: string;
   playerLeftTemplate?: string;
   playerDieTemplate?: string;
+  serverStatTemplate?: string;
   specialAttrPrefix?: string;
   specialAttrSuffix?: string;
+  customRegex?: CustomRegex[];
 }
 
 export type AsyncFunction<A extends Array<unknown>, O> = (

@@ -27,7 +27,8 @@
     "no-bitwise": "off",
     "@typescript-eslint/no-var-requires": "off",
     "no-console": "off",
-    "no-continue": "off"
+    "no-continue": "off",
+    "import/no-named-default": "off"
   },
   "settings": {
     "import/resolver": {

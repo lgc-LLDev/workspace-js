@@ -73,4 +73,68 @@ plugins:
       # - player：LLSE玩家对象
       # - source：LLSE实体对象，或为空
       playerDieTemplate: >
-        [服务器] {{player.realName}} {{#source}}被 {{source.name}} 残害{{/source}}{{^source}}暴毙了{{/source}}
+        [服务器] {{player.realName}} {{#source}}被 {{source.name}} 撅死了{{/source}}{{^source}}暴毙了{{/source}}
+      # 服务器状态返回消息模板
+      # - cpuUsage: CPU占用百分比
+      # - memory: 物理内存占用信息
+      #   - used: 已用(M) 保留2位小数
+      #   - remain: 剩余(M) 保留2位小数
+      #   - total: 总计(M) 保留2位小数
+      #   - percent: 占用百分比 保留2位小数
+      # - disk: 磁盘占用信息
+      #   - diskPath: BDS所在盘符
+      #   - free: 剩余空间(G) 保留2位小数
+      #   - used: 已用空间(G) 保留2位小数
+      #   - size: 总计空间(G) 保留2位小数
+      #   - percent: 占用百分比 保留2位小数
+      # - bdsVersion: BDS版本号
+      # - protocolVersion: 协议版本号
+      # - llVersion: LL版本号
+      # - plugins: 插件列表（string[]）
+      # - players: 玩家列表（为以下属性组成的对象组成的数组）
+      #   - pl: LLSE玩家对象
+      #   - dv: LLSE设备对象
+      serverStatTemplate: |
+        CPU占用：{{cpuUsage}}%
+        内存占用：{{memory.used}}M / {{memory.total}}M ({{memory.percent}}%)
+        磁盘占用：{{disk.used}}G / {{disk.size}}G ({{disk.percent}}%)
+        游戏版本：{{bdsVersion}}
+        协议版本：{{protocolVersion}}
+        LL版本：{{llVersion}}
+        插件数量：{{plugins.length}}
+        玩家列表（共 {{players.length}} 人）：
+        {{#players}}
+        {{pl.realName}} | {{dv.os}} | {{dv.avgPing}}ms
+        {{/players}}
+
+      # 自定义正则，详细用法请看下面示例
+      # 如果觉得不够用联系我，我以后再加
+      customRegex:
+        # 玩家使用指令向群和服务器内播报示例
+        - # 指定匹配条件，可以多个
+          from:
+            - # group 从群聊消息里匹配
+              # console 从控制台输出中匹配
+              type: console
+              # 要匹配的正则
+              regex: '\[Command\] <([a-zA-Z\s]+)> ([\s\S]*)'
+          # 要执行的操作，可以多个
+          actions:
+            - # group 向群聊发送消息
+              # console 执行控制台命令
+              # reply 向来源群发消息（如果没有来源群作用和 group 相同）
+              type: group
+              # 为 group、reply 时为要发送的消息
+              # 为 console 时为要执行的指令
+              content: '[服务器] 玩家 $1 使用了指令 $2'
+            # 另一个要执行的操作（向全服广播）
+            - type: console
+              content: 'tellraw @a {"rawtext":[{"text":"玩家 §a$1§r 使用了指令 §6$2"}]}'
+
+        # 群内自定义问答示例
+        - from:
+            - type: group
+              regex: ^好耶$
+          actions:
+            - type: reply
+              content: 好好好！
