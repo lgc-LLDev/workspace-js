@@ -2,6 +2,7 @@
   "extends": "../tsconfig.template.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": "./"
+    "rootDir": "./",
+    "baseUrl": "../node_modules"
   }
 }
