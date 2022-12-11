@@ -4,7 +4,7 @@
 /// <reference path="d:\Coding\LLSEAids/dts/llaids/src/index.d.ts"/>
 
 const pluginName = 'LLBlackBEEx';
-const pluginVersion = [0, 1, 6];
+const pluginVersion = [0, 1, 7];
 const {
   Red,
   DarkGreen,
@@ -36,7 +36,7 @@ const kickByCloudMsg = config.init(
 const useMirrorBlackBEUrl = config.init('useMirrorBlackBEUrl', false);
 
 const BLACKBE_API_PREFIX = `https://${
-  useMirrorBlackBEUrl ? 'blackbe.lgc2333.top' : 'api.blackbe.xyz'
+  useMirrorBlackBEUrl ? 'blackbe.lgc2333.top' : 'api.blackbe.work'
 }/openapi/v3/`;
 
 const localBlacklist = new JsonConfigFile(
