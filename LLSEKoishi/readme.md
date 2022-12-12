@@ -4,36 +4,44 @@
 
 LLSE 中的 [Koishi](https://koishi.chat/) Launcher！
 
+下载插件请去 [Releases](https://github.com/lgc2333/LLSEPlugins/releases)
+
+<!--
 ## 编译 & 打包
 
 - 克隆整个存储库，在存储库根目录执行 `npm install`
 - 在此目录运行 `npm run build`
 - 将 `dist`、`res` 文件夹以及 `package.json` 打包成 `llplugin` 即可
+-->
 
 ## 安装
 
-打包后以常规 NodeJS 插件安装即可
+解压 Release 中的压缩包到服务器根目录即可
+
+## 使用
+
+安装并加载插件成功后，插件将会在 `plugins/LLSEKoishi` 文件夹下生成 `koishi.yml` 配置文件，请先按照该文件内指引修改配置之后重启服务器
+
+本插件与 OneBotBridge 同步发布，一起打包到 Releases 发布的压缩包里  
+这是一个基于本插件的 QQ 群服同步插件，该插件文档请看[这里](plugins/OneBotBridge/readme.md)  
+本插件示例配置内也包含了该插件的配置项
+
+如果你需要安装其他 Koishi 插件，可以使用 `npm` 安装，或者把插件项目文件夹放在 `plugins/LLSEKoishi/plugins` 文件夹下  
+再去修改配置文件 `koishi.yml` 让 LLSEKoishi 加载你的插件（方式见 [这里](https://koishi.chat/guide/plugin/index.html#%E5%9C%A8%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6%E4%B8%AD%E5%8A%A0%E8%BD%BD)）
+
+LLSEKoishi 将会自动安装插件文件夹下所有 Koishi 插件 `package.json` 里声明的 `dependencies` 依赖项
+
+呃呃 不太会写文档 如果有什么问题的话直接[来问我](#联系我)吧
 
 ## 开发
 
 Koishi 插件开发文档见 [这里](https://koishi.chat/guide/)
 
-当你搞完自己的 Koishi 插件之后  
-请把你的 Koishi 插件项目文件夹放在 `plugins/LLSEKoishi/plugins` 文件夹下  
-再去修改配置文件让 LLSEKoishi 加载你的插件（方式见 [这里](https://koishi.chat/guide/plugin/index.html#%E5%9C%A8%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6%E4%B8%AD%E5%8A%A0%E8%BD%BD)）
-
-LLSEKoishi 将会自动安装插件文件夹下所有 Koishi 插件 `package.json` 里声明的 `dependencies` 依赖项
-
-## 配置文件
-
-初次加载插件会自动写入样板配置，参考 [这里](res/koishi.yml)
-
 ## 注意事项
 
-- 你可以在控制台中 npm install 再修改配置文件来安装其他 Koishi 插件
 - 目前 LLSEKoishi 还不支持原生 Koishi 的一部分插件（包括 `console`），所以没有预装，如果有人能想办法适配，欢迎 PR ！
-- LLSEKoishi 目前不能热重载，因为启动 Koishi 之后没法监听插件是否被卸载，导致 Koishi 依然在运行且占用着端口
-- 目前 LLSEKoishi 的部分特性与原生 Koishi 有差异，请各位稍微注意
+- **LLSEKoishi 目前不能热重载**，因为启动 Koishi 之后没法监听插件是否被卸载，导致 Koishi 依然在运行且占用着端口
+- 目前 LLSEKoishi 的部分特性可能与原生 Koishi 有差异，请各位稍微注意
 
 ## 联系我
 
@@ -55,4 +63,4 @@ QQ：3076823485
 
 ## 更新日志
 
-还未正式发布，未来将会与 [OneBotBridge](../OneBotBridge) 同步发布
+暂无
