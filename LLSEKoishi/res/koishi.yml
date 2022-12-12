@@ -22,7 +22,7 @@ plugins:
   group:adapter:
     # OneBot 适配器
     # 配置参考 https://koishi.chat/plugins/adapter/onebot.html
-    # !!! 请先修改这里 !!!
+    # !!! 这里需要修改 !!!
     adapter-onebot:
       protocol: ws # 正向 ws
       endpoint: ws://127.0.0.1:6700 # 正向 ws 的连接地址
@@ -32,6 +32,7 @@ plugins:
   group:llse:
     # OneBotBridge
     ./plugins/OneBotBridge:
+      # !!! 这里也需要修改 !!!
       superusers: # 管理员列表，管理员可以在群聊执行服务器命令
         - 3076823485
       enableGroups: # 插件启用的群聊，会把服务器消息转发到这些群聊
