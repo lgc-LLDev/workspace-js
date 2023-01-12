@@ -28,7 +28,9 @@
     "@typescript-eslint/no-var-requires": "off",
     "no-console": "off",
     "no-continue": "off",
-    "import/no-named-default": "off"
+    "import/no-named-default": "off",
+    "camelcase": "off",
+    "@typescript-eslint/no-explicit-any": "off"
   },
   "settings": {
     "import/resolver": {

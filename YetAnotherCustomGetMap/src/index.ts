@@ -20,6 +20,7 @@ if (!ll.require('CustomMap.dll')) {
 callAsyncLogErr(async () => {
   await import('./config'); // 先初始化配置
   await import('./command');
+  await import('./yoyo-ext');
 })();
 
 ll.registerPlugin(pluginName, pluginDescription, pluginVersion, pluginExtra);

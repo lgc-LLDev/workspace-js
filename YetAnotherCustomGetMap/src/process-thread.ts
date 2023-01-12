@@ -2,6 +2,9 @@ import { existsSync } from 'fs';
 import { mkdir, rm, writeFile } from 'fs/promises';
 import Jimp from 'jimp';
 import { basename, join, resolve as pathResolve } from 'path';
+import { isMainThread, parentPort, workerData } from 'worker_threads';
+
+import { Bitmap } from '@jimp/core';
 
 import { cutSize } from './const';
 
@@ -60,6 +63,63 @@ export async function imgToBin(
   }
   await Promise.all(tasks);
   return outFiles;
+}
+
+export interface ProcessThreadData {
+  size: [number, number];
+  hAlign: number;
+  vAlign: number;
+  scaleMode: string;
+  bitmap: Bitmap;
+  processType: number;
+  fileName: string;
+  tmpFolder: string;
+}
+
+export interface ProcessMessage {
+  type: 'pre-process' | 'ok';
+  data: string[];
+}
+
+if (!isMainThread) {
+  const {
+    size: [w, h],
+    hAlign,
+    vAlign,
+    scaleMode,
+    bitmap,
+    processType,
+    fileName,
+    tmpFolder,
+  } = workerData as ProcessThreadData;
+
+  const image = new Jimp(bitmap);
+  switch (processType) {
+    case 0: {
+      // 裁剪
+      image.cover(w, h, hAlign | vAlign, scaleMode);
+      break;
+    }
+    case 1: {
+      // 拉伸
+      image.resize(w, h, scaleMode);
+      break;
+    }
+    case 2: {
+      // 保留白边
+      image
+        .background(0xffffffff) // 设置背景颜色，默认是黑色，这里换成白色
+        .contain(w, h, hAlign | vAlign, scaleMode);
+      break;
+    }
+    // no default
+  }
+
+  parentPort?.postMessage({ type: 'pre-process', data: [] });
+
+  imgToBin(image, fileName, tmpFolder).then((r) =>
+    parentPort?.postMessage({ type: 'ok', data: r })
+  );
 }
 
 export default {};

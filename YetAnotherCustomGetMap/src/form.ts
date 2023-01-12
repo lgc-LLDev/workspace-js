@@ -2,12 +2,13 @@ import { existsSync } from 'fs';
 import { readdir } from 'fs/promises';
 import Jimp from 'jimp';
 import { basename, extname, join } from 'path';
+import { Worker } from 'worker_threads';
 
 import { config } from './config';
 import { cutSize, imgPath, pluginName, tmpPath } from './const';
-import { imgToBin } from './gen-map';
 import { giveMap } from './give-map';
-import { callAsyncLogErr, emptyCallback, formatError, sleep } from './util';
+import { ProcessMessage, ProcessThreadData } from './process-thread';
+import { callAsyncLogErr, emptyCallback, formatError } from './util';
 
 /**
  * 图片处理表单
@@ -81,20 +82,18 @@ export async function formGet(player: Player, fileName: string) {
         ['最近邻', '双线性', '双三次', '埃尔米特', '贝塞尔'],
         2
       ),
-    callAsyncLogErr(
-      async (
-        _,
-        res: [null, number, number, number, number, number] | undefined
-      ) => {
-        // logger.info(res);
-        if (!res) {
-          player.tell('表单已取消');
-          return;
-        }
 
-        player.tell('处理图片中，请稍候……');
-        await sleep(0);
-        try {
+    (_, res: [null, number, number, number, number, number] | undefined) =>
+      setTimeout(
+        callAsyncLogErr(async () => {
+          // logger.info(res);
+          if (!res) {
+            player.tell('表单已取消');
+            return;
+          }
+
+          player.tell('处理图片中，请稍候……');
+
           const [, scaleIndex, processType, hAType, vAType, scaleTIndex] = res;
           const selectedScale = scales[scaleIndex];
           const [w, h] = selectedScale.map((x) => x * cutSize);
@@ -115,47 +114,52 @@ export async function formGet(player: Player, fileName: string) {
             Jimp.RESIZE_HERMITE,
             Jimp.RESIZE_BEZIER,
           ][scaleTIndex];
-          // logger.info({ w, h });
-          // logger.info({ hAlign, vAlign });
-
-          switch (processType) {
-            case 0: {
-              // 裁剪
-              image.cover(w, h, hAlign | vAlign, scaleMode);
-              break;
-            }
-            case 1: {
-              // 拉伸
-              image.resize(w, h, scaleMode);
-              break;
-            }
-            case 2: {
-              // 保留白边
-              image
-                .background(0xffffffff) // 设置背景颜色，默认是黑色，这里换成白色
-                .contain(w, h, hAlign | vAlign, scaleMode);
-              break;
-            }
-            // no default
-          }
-          player.tell(`§a图片处理完毕！准备生成二进制文件……`);
-          await sleep(0);
 
           // 临时文件夹后跟玩家名，目的是多个玩家同时生成一张图时不会串文件
           const tmpFolder = join(
             tmpPath,
             `${basename(fileName, extname(fileName))}_${player.realName}`
           );
-          const files = await imgToBin(image, fileName, tmpFolder);
-          player.tell(`§a二进制文件生成完毕！`);
-          giveMap(player.xuid, files, selectedScale);
-        } catch (e) {
-          const tip = `生成出错！\n${formatError(e)}`;
-          logger.error(tip);
-          player.tell(`§c${tip}`);
-        }
-      }
-    )
+
+          await new Promise<void>((resolve) => {
+            const workerData: ProcessThreadData = {
+              size: [w, h],
+              hAlign,
+              vAlign,
+              scaleMode,
+              bitmap: image.bitmap,
+              processType,
+              fileName,
+              tmpFolder,
+            };
+            const worker = new Worker(`${__dirname}/process-thread.js`, {
+              workerData,
+            });
+
+            worker.on('message', (msg: ProcessMessage) => {
+              switch (msg.type) {
+                case 'pre-process': {
+                  player.tell(`§a图片处理完毕！准备生成二进制文件……`);
+                  break;
+                }
+                case 'ok': {
+                  player.tell(`§a二进制文件生成完毕！`);
+
+                  giveMap(player.xuid, msg.data, selectedScale);
+                  resolve();
+                }
+                // no default
+              }
+            });
+
+            worker.on('error', (e) => {
+              const tip = `生成出错！\n${formatError(e)}`;
+              logger.error(tip);
+              player.tell(`§c${tip}`);
+            });
+          });
+        })
+      )
   );
 }
 
