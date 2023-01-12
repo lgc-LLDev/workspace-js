@@ -1,5 +1,6 @@
 import { basename } from 'path';
 
+import { config } from './config';
 import { callAsyncLogErr, sleep } from './util';
 
 /** 二进制文件信息 */
@@ -97,38 +98,38 @@ export function giveMap(xuid: string, files: string[], size: [number, number]) {
         return;
       }
       if (mapIndex + 1 === listLength) {
-        player.tell('§a给予完毕！');
-        clearTask();
-        return;
-      }
-
-      const currentMap = parsedMaps[mapIndex];
-
-      const mainHand = player.getHand();
-      if (mainHand.isNull()) {
-        // 主手为空，获取下一张地图
-        const mapItem = mc.newItem('minecraft:filled_map', 1);
-        if (!mapItem) return;
-
-        mainHand.set(mapItem);
-        player.refreshItems();
-        await sleep(0);
-
-        const nextMap = parsedMaps[mapIndex + 1];
-        if (nextMap) {
-          const { fullPath } = nextMap;
-          // CustomMap不认反斜杠路径
-          if (!player.runcmd(`map "${fullPath.replace(/\\/g, '/')}"`)) return;
-          mapIndex += 1;
-          tipTxt = formatTip(nextMap);
-        }
+        // player.tell('§a给予完毕！');
+        // clearTask();
+        // return;
+        tipTxt = `§dYACGM §7| §a给予完毕 §7| §b使用 §6/${config.mainCommand} stop §b退出`;
       } else {
-        tipTxt = formatTip(currentMap);
-      }
+        const currentMap = parsedMaps[mapIndex];
 
+        const mainHand = player.getHand();
+        if (mainHand.isNull()) {
+          // 主手为空，获取下一张地图
+          const mapItem = mc.newItem('minecraft:filled_map', 1);
+          if (!mapItem) return;
+
+          mainHand.set(mapItem);
+          player.refreshItems();
+          await sleep(0);
+
+          const nextMap = parsedMaps[mapIndex + 1];
+          if (nextMap) {
+            const { fullPath } = nextMap;
+            // CustomMap不认反斜杠路径
+            if (!player.runcmd(`map "${fullPath.replace(/\\/g, '/')}"`)) return;
+            mapIndex += 1;
+            tipTxt = formatTip(nextMap);
+          }
+        } else {
+          tipTxt = formatTip(currentMap);
+        }
+      }
       player.tell(tipTxt, 5);
     }),
-    0
+    50
   );
 
   /** 暴露给外面的停止给予 控制函数 */
