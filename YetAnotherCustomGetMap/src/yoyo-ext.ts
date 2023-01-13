@@ -63,14 +63,16 @@ interface Bind {
 }
 
 interface Yoyo {
-  segment: typeof import('oicq').segment & { atall: () => void };
+  segment: typeof import('oicq').segment & {
+    atall: () => import('oicq').AtElem;
+  };
   // cqcode: typeof import('oicq').cqcode; // ???
   getinfo: () => ServerInfo;
   bind: Bind;
   listen: (
     eventName: string | symbol,
     listener: (...args: any[]) => void
-  ) => import('events').EventEmitter;
+  ) => void;
   client: import('oicq').Client;
 }
 

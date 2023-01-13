@@ -10,7 +10,7 @@
 ## 介绍
 
 插件使用 [Jimp](https://github.com/oliver-moran/jimp) 库来处理图片以及生成地图画二进制文件，**不需要借助其他程序**  
-但缺点是**处理图片的时候会卡服**  
+~~但缺点是**处理图片的时候会卡服**~~（该问题已经被解决）  
 （性能更好的 [sharp](https://github.com/lovell/sharp) 库会崩服 悲）
 
 插件支持的图片格式：bmp、gif、jpeg、png、tiff，**不支持** webp

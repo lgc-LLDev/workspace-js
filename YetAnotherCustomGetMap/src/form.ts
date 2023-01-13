@@ -96,7 +96,10 @@ export async function formGet(player: Player, fileName: string) {
 
           const [, scaleIndex, processType, hAType, vAType, scaleTIndex] = res;
           const selectedScale = scales[scaleIndex];
-          const [w, h] = selectedScale.map((x) => x * cutSize);
+          const size = selectedScale.map((x) => x * cutSize) as [
+            number,
+            number
+          ];
           const hAlign = [
             Jimp.HORIZONTAL_ALIGN_LEFT,
             Jimp.HORIZONTAL_ALIGN_CENTER,
@@ -123,7 +126,7 @@ export async function formGet(player: Player, fileName: string) {
 
           await new Promise<void>((resolve) => {
             const workerData: ProcessThreadData = {
-              size: [w, h],
+              size,
               hAlign,
               vAlign,
               scaleMode,
