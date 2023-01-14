@@ -4,6 +4,8 @@
 
 **目前已不推荐使用本插件，请移步 YoyoRobot、QBotForLiteLoader 等插件**
 
+也可以来看看 [LLSEKoishi](../LLSEKoishi)
+
 一个依赖 [GoCQHTTP](https://github.com/Mrs4s/go-cqhttp) 的群服互通插件
 
 ## 介绍
