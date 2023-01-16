@@ -30,7 +30,9 @@
     "no-continue": "off",
     "import/no-named-default": "off",
     "camelcase": "off",
-    "@typescript-eslint/no-explicit-any": "off"
+    "@typescript-eslint/no-explicit-any": "off",
+    "no-underscore-dangle": "off",
+    "max-classes-per-file": "off"
   },
   "settings": {
     "import/resolver": {
