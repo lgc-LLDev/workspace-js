@@ -1,7 +1,7 @@
 // LiteLoaderScript Dev Helper
 /// <reference path="d:\Coding\LLSEAids/dts/llaids/src/index.d.ts"/>
 /* eslint-disable no-await-in-loop */
-/* global ll mc logger ParticleColor File NbtByte */
+/* global ll mc logger ParticleColor File */
 
 const PLUGIN_NAME = 'Airdrop';
 const PLUGIN_VERSION = [0, 1, 0];
@@ -218,13 +218,16 @@ function getAwardItems() {
 
     if (Math.random() > chance) continue;
 
+    const amount = randomInt(min, max);
+    if (!amount) continue;
+
     let item;
     if (sNbt) {
       item = mc.newItem(sNbt);
+      const nbt = item.getNbt();
+      nbt.setByte('Count', amount);
+      item.setNbt(nbt);
     } else {
-      const amount = randomInt(min, max);
-      if (!amount) continue;
-
       item = mc.newItem(type, amount);
       if (typeof aux === 'number') item.setAux(aux);
     }
@@ -490,7 +493,7 @@ mc.listen('onUseItem', (player) => {
     const { count } = item;
     const newNbt = item.getNbt();
     newNbt.toObject();
-    newNbt.setTag('Count', new NbtByte(count - 1));
+    newNbt.setByte('Count', count - 1);
     item.setNbt(newNbt);
     player.refreshItems();
 
