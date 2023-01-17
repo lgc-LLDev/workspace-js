@@ -4,7 +4,7 @@
 /* global ll mc logger ParticleColor File */
 
 const PLUGIN_NAME = 'Airdrop';
-const PLUGIN_VERSION = [0, 1, 0];
+const PLUGIN_VERSION = [0, 1, 1];
 
 const PLUGIN_DATA_PATH = `plugins/${PLUGIN_NAME}`;
 const PLUGIN_CONFIG_PATH = `${PLUGIN_DATA_PATH}/config.json`;
@@ -337,6 +337,7 @@ function spawnLightBeam(pos, yOffset = 0) {
       ParticleColor[lightBeamColor]
     );
   } else {
+    pos = [...pos];
     pos[1] += 1; // y+1
     spawnFirework(pos);
   }
