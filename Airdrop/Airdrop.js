@@ -203,6 +203,18 @@ function playTipSound() {
 }
 
 /**
+ * @param {Item} item
+ * @param {number} count
+ * @returns {Item}
+ */
+function modifyItemCount(item, count) {
+  const newNbt = item.getNbt();
+  newNbt.setByte('Count', count - 1);
+  item.setNbt(newNbt);
+  return item;
+}
+
+/**
  * @returns {Item[]}
  */
 function getAwardItems() {
@@ -223,10 +235,7 @@ function getAwardItems() {
 
     let item;
     if (sNbt) {
-      item = mc.newItem(sNbt);
-      const nbt = item.getNbt();
-      nbt.setByte('Count', amount);
-      item.setNbt(nbt);
+      item = modifyItemCount(mc.newItem(sNbt), amount);
     } else {
       item = mc.newItem(type, amount);
       if (typeof aux === 'number') item.setAux(aux);
@@ -415,6 +424,7 @@ mc.listen('onBlockInteracted', (_, block) => {
 
 /**
  * @param {Player} [player]
+ * @returns {Promise<boolean>}
  */
 async function summonAirdrop(player) {
   /** @param {string} msg */
@@ -436,11 +446,11 @@ async function summonAirdrop(player) {
   } = pluginConfig;
   if (droppedAirdrops.length >= maxAirdrops) {
     tell(`§c已达同时存在空投上限，无法再召唤空投`);
-    return;
+    return false;
   }
   if (droppingAirdrop) {
     tell(`§c已经有一个空投在召唤了，请不要同时召唤其他空投`);
-    return;
+    return false;
   }
 
   let centerX;
@@ -469,7 +479,7 @@ async function summonAirdrop(player) {
             : `§a服务器自动`;
           mc.broadcast(`${tipFrom}召唤了一个空投！`);
           playTipSound();
-          return;
+          return true;
         }
       } catch (e) {
         logger.error(String(e));
@@ -483,6 +493,7 @@ async function summonAirdrop(player) {
   tell(
     `§c我们尝试了 ${maxRetries} 次都没有找到适合的空投落点，请换个地方再试试吧`
   );
+  return false;
 }
 
 setInterval(() => summonAirdrop(), pluginConfig.interval);
@@ -492,13 +503,15 @@ mc.listen('onUseItem', (player) => {
   const item = player.getHand();
   if (item.type === triggerItem) {
     const { count } = item;
-    const newNbt = item.getNbt();
-    newNbt.toObject();
-    newNbt.setByte('Count', count - 1);
-    item.setNbt(newNbt);
+    modifyItemCount(item, count - 1);
     player.refreshItems();
 
-    setTimeout(() => summonAirdrop(player), 0);
+    setTimeout(() => {
+      (async () => {
+        if (!(await summonAirdrop(player)))
+          player.getInventory().addItem(modifyItemCount(item.clone(), 1));
+      })();
+    }, 0);
     return false;
   }
   return true;
