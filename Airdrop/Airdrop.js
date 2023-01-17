@@ -209,7 +209,7 @@ function playTipSound() {
  */
 function modifyItemCount(item, count) {
   const newNbt = item.getNbt();
-  newNbt.setByte('Count', count - 1);
+  newNbt.setByte('Count', count);
   item.setNbt(newNbt);
   return item;
 }
