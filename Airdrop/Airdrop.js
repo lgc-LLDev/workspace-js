@@ -508,8 +508,10 @@ mc.listen('onUseItem', (player) => {
 
     setTimeout(() => {
       (async () => {
-        if (!(await summonAirdrop(player)))
+        if (!(await summonAirdrop(player))) {
           player.getInventory().addItem(modifyItemCount(item.clone(), 1));
+          player.refreshItems();
+        }
       })();
     }, 0);
     return false;
