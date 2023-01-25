@@ -4,16 +4,15 @@ import { tmpPath } from './const';
 
 import type { MessageElem, TextElem } from 'oicq';
 
-// 没有用处
-// /**
-//  * 把错误甩出去
-//  * @param e 错误内容
-//  */
-// export function throwToMain(e: unknown) {
-//   setTimeout(() => {
-//     throw e;
-//   }, 0);
-// }
+/**
+ * 把错误甩出去
+ * @param e 错误内容
+ */
+export function throwToMain(e: unknown) {
+  setTimeout(() => {
+    throw e;
+  }, 0);
+}
 
 /**
  * 格式化错误堆栈

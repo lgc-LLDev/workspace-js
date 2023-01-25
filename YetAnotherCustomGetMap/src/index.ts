@@ -7,7 +7,7 @@ import {
   pluginName,
   pluginVersion,
 } from './const';
-import { callAsyncLogErr, deleteTmpDirSync } from './util';
+import { deleteTmpDirSync, throwToMain } from './util';
 
 logger.setTitle(pluginName);
 
@@ -17,10 +17,10 @@ if (!ll.require('CustomMap.dll')) {
   throw ReferenceError('依赖插件 CustomMap.dll 未加载！');
 }
 
-callAsyncLogErr(async () => {
+(async () => {
   await import('./config'); // 先初始化配置
   await import('./command');
   await import('./yoyo-ext');
-})();
+})().catch(throwToMain);
 
 ll.registerPlugin(pluginName, pluginDescription, pluginVersion, pluginExtra);
