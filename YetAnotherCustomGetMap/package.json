@@ -1,6 +1,6 @@
 {
   "name": "yet-another-custom-get-map",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Yet another LLSE CustomGetMap plugin.",
   "main": "index.js",
   "scripts": {
@@ -20,6 +20,7 @@
   "homepage": "https://github.com/lgc2333/LLSEPlugins#readme",
   "dependencies": {
     "@jimp/core": "^0.16.2",
+    "axios": "^1.2.4",
     "jimp": "^0.16.2"
   },
   "devDependencies": {

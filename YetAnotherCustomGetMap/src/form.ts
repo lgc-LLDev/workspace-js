@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { existsSync } from 'fs';
 import { readdir } from 'fs/promises';
 import Jimp from 'jimp';
@@ -16,8 +17,16 @@ import { callAsyncLogErr, emptyCallback, formatError } from './util';
  * @param fileName 图片文件名，文件需在imgPath下
  */
 export async function formGet(player: Player, fileName: string) {
-  const filePath = join(imgPath, fileName);
-  if (!existsSync(filePath)) {
+  if (config.getPageOP && player.permLevel < 1) {
+    player.tell('你无权执行此操作');
+    return;
+  }
+
+  const isUrl =
+    fileName.startsWith('http://') || fileName.startsWith('https://');
+
+  const filePath = isUrl ? '' : join(imgPath, fileName);
+  if (!isUrl && !existsSync(filePath)) {
     player.tell('§c文件不存在');
     return;
   }
@@ -25,12 +34,18 @@ export async function formGet(player: Player, fileName: string) {
   let image: Jimp;
   player.tell('读取图片信息……');
   try {
-    image = await Jimp.read(filePath);
+    const file = isUrl
+      ? (await axios.get(fileName, { responseType: 'arraybuffer' })).data
+      : filePath;
+    image = await Jimp.read(file);
   } catch (e) {
-    player.tell(`§c图片打开失败！\n${formatError(e)}`);
+    logger.error('图片打开失败');
+    logger.error(formatError(e));
+    player.tell(`§c图片打开失败！`);
     return;
   }
 
+  fileName = isUrl ? String(Date.now()) : fileName;
   const width = image.getWidth();
   const height = image.getHeight();
 
@@ -171,6 +186,11 @@ export async function formGet(player: Player, fileName: string) {
  * @param player 玩家
  */
 export async function formFiles(player: Player) {
+  if (config.mainPageOP && player.permLevel < 1) {
+    player.tell('你无权执行此操作');
+    return;
+  }
+
   const files = (await readdir(imgPath, { withFileTypes: true }))
     .filter((v) => v.isFile())
     .map((v) => v.name);

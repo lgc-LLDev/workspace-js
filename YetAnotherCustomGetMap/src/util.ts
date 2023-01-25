@@ -2,6 +2,8 @@ import { existsSync, mkdirSync, rmSync } from 'fs';
 
 import { tmpPath } from './const';
 
+import type { MessageElem, TextElem } from 'oicq';
+
 // 没有用处
 // /**
 //  * 把错误甩出去
@@ -51,7 +53,7 @@ export function callAsyncLogErr<T extends Array<unknown>>(
   func: (...args: T) => Promise<unknown>
 ): (...args: T) => void {
   return (...args: T) => {
-    func(...args).catch(logError);
+    setTimeout(() => func(...args).catch(logError), 0);
   };
 }
 
@@ -71,3 +73,9 @@ export function deleteTmpDirSync() {
 
 /** 工具 空函数 */
 export const emptyCallback = () => {};
+
+export function extractMsgPlaintext(msg: MessageElem[]): string {
+  return (msg.filter((v) => v.type === 'text') as TextElem[])
+    .map((v) => v.text)
+    .join('');
+}

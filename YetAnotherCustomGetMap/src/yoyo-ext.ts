@@ -1,11 +1,23 @@
+import axios from 'axios';
 import { existsSync } from 'fs';
-import { resolve } from 'path';
+import { writeFile } from 'fs/promises';
+import { join, resolve } from 'path';
 
-import { pluginName } from './const';
+import { imgPath, pluginName } from './const';
+import { extractMsgPlaintext, formatError } from './util';
 
-type BindObj = { name?: string; qq?: string };
+import type {
+  segment,
+  AtElem,
+  Client,
+  GroupMessageEvent,
+  ImageElem,
+} from 'oicq';
+import { config } from './config';
 
-interface ServerInfo {
+export type BindObj = { name?: string; qq?: string };
+
+export interface ServerInfo {
   /** 下一秒cpu使用率 */
   cpuUsage: number;
   /** 下一秒cpu空闲率 */
@@ -30,7 +42,7 @@ interface ServerInfo {
   cpuCount: number;
 }
 
-interface Bind {
+export interface Bind {
   /**
    * 绑定游戏id
    * @param name 游戏id
@@ -62,33 +74,85 @@ interface Bind {
   readBind(): null | { [x: string]: string };
 }
 
-interface Yoyo {
-  segment: typeof import('oicq').segment & {
-    atall: () => import('oicq').AtElem;
+export interface Yoyo {
+  segment: typeof segment & {
+    atall: () => AtElem;
   };
-  // cqcode: typeof import('oicq').cqcode; // ???
+  // cqcode: any; // ???
   getinfo: () => ServerInfo;
   bind: Bind;
   listen: (
     eventName: string | symbol,
     listener: (...args: any[]) => void
   ) => void;
-  client: import('oicq').Client;
+  client: Client;
+}
+
+let globalYoyo: Yoyo | null = null;
+
+async function getPicLink(ev: GroupMessageEvent, arg: string) {
+  const { message, group_id } = ev;
+  const { client } = globalYoyo!;
+  const imageList = message.filter((v) => v.type === 'image') as ImageElem[];
+
+  if (!imageList.length) {
+    client.sendGroupMsg(group_id, '请在消息后带一张图片');
+    return;
+  }
+
+  const [{ url }] = imageList;
+  if (!url) return;
+
+  let picName = arg || String(Date.now());
+  try {
+    const res = await axios.get(url, { responseType: 'arraybuffer' });
+    const { data, headers } = res;
+
+    // console.log(headers);
+    const extName = (headers['content-type'] as string).split('/').pop();
+    picName += `.${extName}`;
+
+    const picPath = join(imgPath, picName);
+    if (existsSync(picPath)) {
+      client.sendGroupMsg(group_id, '图片路径下已有同名文件');
+      return;
+    }
+
+    await writeFile(picPath, data);
+  } catch (e) {
+    logger.error('保存图片失败');
+    logger.error(formatError(e));
+    client.sendGroupMsg(group_id, '保存图片失败，请重试');
+    return;
+  }
+
+  client.sendGroupMsg(
+    group_id,
+    `图片保存成功！\n可以使用指令【/${config.mainCommand} get "${picName}"】来获取地图画`
+  );
 }
 
 function apply(yoyo: Yoyo) {
-  const { client, segment, listen } = yoyo;
-  listen('messageGroup', (ev: import('oicq').GroupMessageEvent) => {
-    const {
-      raw_message,
-      group_id,
-      sender: { user_id },
-    } = ev;
-    if (raw_message.toLowerCase().startsWith('hello')) {
-      client.sendGroupMsg(group_id, [
-        segment.at(user_id),
-        '你好！这里是YoyoRobot~ 这条消息是从YetAnotherCustomGetMap发出来的！',
-      ]);
+  globalYoyo = yoyo;
+
+  const { listen } = yoyo;
+  listen('messageGroup', (ev: GroupMessageEvent) => {
+    const matches: [
+      string | RegExp,
+      (ev: GroupMessageEvent, arg: string) => unknown
+    ][] = [['上传地图画', getPicLink]];
+    const message = extractMsgPlaintext(ev.message).trim();
+
+    for (const [match, func] of matches) {
+      const ok =
+        typeof match === 'string'
+          ? message.startsWith(match)
+          : match.test(message);
+      if (ok) {
+        const arg = message.replace(match, '');
+        func(ev, arg);
+        return;
+      }
     }
   });
 }
@@ -100,4 +164,8 @@ if (existsSync(yoyoApiPath)) {
   require(yoyoApiPath)(apply, pluginName);
 }
 
-export default {};
+export default {
+  get yoyo() {
+    return globalYoyo;
+  },
+};

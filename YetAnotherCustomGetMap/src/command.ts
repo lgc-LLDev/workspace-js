@@ -55,7 +55,7 @@ cmdGetMap.setCallback((_, origin, out, res: CmdGetMapCallback) => {
   const { player } = origin;
 
   // reload指令仅OP可用
-  if ((config.onlyOP || enumReload) && player && player.permLevel < 1) {
+  if (enumReload && player && player.permLevel < 1) {
     out.error('此命令仅OP可用');
     return;
   }
