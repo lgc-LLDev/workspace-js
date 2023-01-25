@@ -44,13 +44,18 @@ YetAnotherCustomGetMap -> YACGM，你也可以在配置文件中更改命令名�
 1. 先去 [Releases](https://github.com/lgc2333/LLSEPlugins/releases) 下载本插件，放在插件文件夹下，开服
 2. 插件加载成功后会在插件文件夹内生成 `YetAnotherCustomGetMap/img` 文件夹，把图片文件放进里面就可以在插件菜单里看到了
 
+当服务端内安装有 YoyoRobot 时，插件会与其对接，并且提供一个新的机器人指令 `上传地图画`  
+使用方法见下图  
+![Alt text](readme/QQ%E5%9B%BE%E7%89%8720230126011744.png)
+
 ## 指令
 
 ### `yacgm`（这个指令可以在配置文件中修改）
 
 - 不带任何参数 - 打开插件主界面
 - `get <fileName:string>` - 直接选择指定的文件，弹出图片处理表单
-  - `fileName` - 图片文件名，需要带后缀，文件需要在插件的图片文件夹中
+  - `fileName` - 图片文件名，需要带后缀，文件需要在插件的图片文件夹中；
+    当此参数为 `http://`或`https://` 开头的链接时，插件会从该链接获取图片
 - `jump <jumpIndex:int>` - 在获取地图的过程中，直接跳转到指定序号的地图
   - `jumpIndex` - 要跳转到的地图序号（序号从 1 开始）
 - `stop` - 在获取地图的过程中，停止获取地图
@@ -67,12 +72,14 @@ YetAnotherCustomGetMap -> YACGM，你也可以在配置文件中更改命令名�
   // 插件指令名称，修改后需要重启服务器
   "mainCommand": "yacgm",
 
-  // 是否只有OP才能使用插件指令
-  // 此配置不对 `yacgm reload` 指令生效
-  "onlyOP": true,
-
   // 插件菜单每页展示的文件数量
-  "pageLimit": 15
+  "pageLimit": 15,
+
+  // 是否需要 OP 才能打开插件主界面
+  "mainPageOP": false,
+
+  // 是否需要 OP 才能使用 yacgm get 指令（打开处理图片页面）
+  "getPageOP": false
 }
 ```
 
@@ -96,4 +103,10 @@ QQ：3076823485
 
 ## 更新日志
 
-暂无
+### 0.2.0
+
+- `yacgm get` 命令可以使用 url 作为参数了
+- 对接了 `YoyoRobot`
+- 调整了配置文件（见 [配置文件](#配置文件)）
+- 解决了处理图片卡服的问题
+- 微调了地图画给予完毕时的行为，需要手动输入指令退出给予模式
