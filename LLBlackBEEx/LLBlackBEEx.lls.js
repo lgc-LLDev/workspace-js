@@ -4,7 +4,7 @@
 /// <reference path="d:\Coding\LLSEAids/dts/llaids/src/index.d.ts"/>
 
 const pluginName = 'LLBlackBEEx';
-const pluginVersion = [0, 1, 7];
+const pluginVersion = [0, 2, 0];
 const {
   Red,
   DarkGreen,
