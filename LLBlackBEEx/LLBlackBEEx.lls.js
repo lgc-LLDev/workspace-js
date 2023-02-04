@@ -1,7 +1,7 @@
 /* eslint-disable no-restricted-syntax */
 /* global ll JsonConfigFile logger mc data Format network PermType ParamType */
 // LiteLoaderScript Dev Helper
-/// <reference path="d:\Coding\LLSEAids/dts/llaids/src/index.d.ts"/>
+/// <reference path="D:\Docu.Haiyue\LiteLScript-HelperLib\HelperLib\src\index.d.ts"/>
 
 const pluginName = 'LLBlackBEEx';
 const pluginVersion = [0, 1, 7];
@@ -474,6 +474,226 @@ function formQuery(player) {
   );
 }
 
+/**
+ * 管理员主面板
+ * @param {Player} player
+ */
+function formManage(player) {
+  player.sendSimpleForm(
+    `${Aqua}${pluginName}${Clear} - ${Green}Manage`,
+    `${Aqua}请选择操作`,
+    ['封禁', '查看本地黑名单'],
+    ['', ''],
+    (pl, id) => {
+      if (id == null) {
+        pl.sendText('您已成功退出');
+      } else if (id === 0) {
+        // eslint-disable-next-line no-use-before-define
+        formBan(pl);
+      } else if (id === 1) {
+        // eslint-disable-next-line no-use-before-define
+        formBanList(pl);
+      }
+    }
+  );
+}
+
+/**
+ * 封禁选择表单
+ * @param {Player} player
+ */
+function formBan(player) {
+  const playerNameList = [];
+  for (const i of mc.getOnlinePlayers()) {
+    playerNameList.push(i.name);
+  }
+  player.sendSimpleForm(
+    `${Aqua}${pluginName}${Clear} - ${Green}Manage`,
+    `${Aqua}请选择要封禁的玩家`,
+    playerNameList,
+    new Array(playerNameList.length).fill(''),
+    (pl, id) => {
+      if (id == null) {
+        formManage(pl);
+      } else {
+        // eslint-disable-next-line no-use-before-define
+        formBanConfirm(pl, playerNameList[id]);
+      }
+    }
+  );
+}
+
+/**
+ * 封禁信息/确认表单
+ * @param {Player} player
+ */
+function formBanConfirm(player, name) {
+  player.sendForm(
+    mc
+      .newCustomForm()
+      .setTitle(`${Aqua}${pluginName}${Clear} - ${Green}Manage`)
+      .addLabel(`您正在封禁玩家 ：${name}`)
+      .addInput('封禁时长', '数字(永久封禁请忽视本参数)')
+      .addStepSlider('时间单位', ['分', '时', '日', '永久封禁'], 1)
+      .addInput('封禁原因'),
+    (pl, ret) => {
+      if (ret == null) {
+        formBan(pl);
+        return;
+      }
+      let time = 0;
+      let showtime;
+      if (ret[2] === 0) {
+        time = ret[1] * 1;
+      }
+      if (ret[2] === 1) {
+        time = ret[1] * 60;
+      }
+      if (ret[2] === 2) {
+        time = ret[1] * 1440;
+      }
+      if (ret[2] === 3) {
+        showtime = '永久封禁';
+        time = null;
+      } else {
+        showtime = `${time}分`;
+      }
+      pl.sendModalForm(
+        '封禁确认',
+        `玩家名:${name}\n封禁时长:${showtime}`,
+        '确认封禁',
+        '取消',
+        (pl_, confirm) => {
+          if (confirm) {
+            if (banPlayerLocal(name, ret[3], time)) {
+              pl_.sendText(`${Green}已成功将玩家 ${name} 加入本地黑名单`);
+            } else {
+              pl_.sendText(`${Red}玩家 ${name} 已存在于本地黑名单`);
+            }
+          } else {
+            formBan(pl_);
+          }
+        }
+      );
+    }
+  );
+}
+
+/**
+ * 本地封禁列表
+ * @param {Player} player
+ */
+function formBanList(player) {
+  function formatEndT(t) {
+    return t ? formatDate(new Date(t)) : '永久';
+  }
+
+  const dataList = getLocalBlacklist();
+  const form = mc.newSimpleForm();
+  form.setTitle(`${Aqua}${pluginName}${Clear} - ${Green}Manage`);
+  for (const i of dataList) {
+    form.addButton(`${i.name}\n${formatEndT(i.endTime)}`);
+  }
+  player.sendForm(form, (pl, id) => {
+    if (id == null) {
+      formManage(pl);
+    } else {
+      // eslint-disable-next-line no-use-before-define
+      formLocalBanInfo(player, dataList[id]);
+    }
+  });
+}
+
+/**
+ * 展示详细信息 解封 修改
+ * @param {Player} player
+ * @param {*} banData
+ */
+function formLocalBanInfo(player, banData) {
+  player.sendSimpleForm(
+    `${Aqua}${pluginName}${Clear} - ${Green}Manage`,
+    formatLocalBanInfo(banData, true),
+    ['修改', '解封'],
+    ['', ''],
+    (pl, id) => {
+      if (id == null) {
+        formBanList(pl);
+      } else if (id === 0) {
+        // eslint-disable-next-line no-use-before-define
+        formChange(pl, banData);
+      } else if (id === 1) {
+        unbanPlayerLocal(banData.name);
+      }
+    }
+  );
+}
+
+/**
+ * 更新封禁信息
+ * @param {Player} player
+ * @param {*} banData
+ */
+function formChange(player, banData) {
+  const lefttime = banData.endTime
+    ? Math.round(
+        (new Date(banData.endTime).getTime() - new Date().getTime()) / 60000
+      ).toString()
+    : '';
+  player.sendForm(
+    mc
+      .newCustomForm()
+      .setTitle(`${Aqua}${pluginName}${Clear} - ${Green}Manage`)
+      .addLabel(`您正在更改玩家 ：${banData.name} 的封禁信息`)
+      .addInput('封禁时长', '数字(永久封禁请忽视本参数)', lefttime)
+      .addStepSlider(
+        '时间单位',
+        ['分', '时', '日', '永久封禁'],
+        lefttime === '' ? 3 : 0
+      )
+      .addInput('封禁原因', '', banData.reason),
+    (pl, ret) => {
+      if (ret == null) {
+        formLocalBanInfo(pl);
+        return;
+      }
+      let time = 0;
+      let showtime;
+      if (ret[2] === 0) {
+        time = ret[1] * 1;
+      }
+      if (ret[2] === 1) {
+        time = ret[1] * 60;
+      }
+      if (ret[2] === 2) {
+        time = ret[1] * 1440;
+      }
+      if (ret[2] === 3) {
+        showtime = '永久封禁';
+        time = null;
+      } else {
+        showtime = `${time}分`;
+      }
+      pl.sendModalForm(
+        '确认修改',
+        `玩家名:${banData.name}\n封禁时长:${showtime}`,
+        '确认修改',
+        '取消',
+        (pl_, confirm) => {
+          if (confirm) {
+            if (banPlayerLocal(banData.name, ret[3], time)) {
+              pl_.sendText(`${Green}已成功修改玩家 ${banData.name} 的封禁信息`);
+            } else {
+              pl_.sendText(`${Red}玩家 ${banData.name} 封禁信息修改失败`);
+            }
+          } else {
+            formChange(pl_);
+          }
+        }
+      );
+    }
+  );
+}
+
 // 自动解ban
 (() => {
   function task() {
@@ -573,6 +793,26 @@ function trimQuote(str) {
 
     if (nameStrip) formResult(ori.player, nameStrip);
     else formQuery(ori.player);
+    return true;
+  });
+  cmd.setup();
+})();
+
+(() => {
+  const cmd = mc.newCommand(
+    'blacklistgui',
+    '黑名单GUI',
+    PermType.GameMasters,
+    0x80,
+    'mgrgui'
+  );
+  cmd.overload([]);
+  cmd.setCallback((_, ori, out) => {
+    if (!ori.player) {
+      out.error(`${Red}控制台无法执行此命令`);
+      return false;
+    }
+    formManage(ori.player);
     return true;
   });
   cmd.setup();
