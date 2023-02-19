@@ -10,6 +10,7 @@ const configPath = join(dataPath, 'config.json');
 interface Config {
   apiToken: string;
   banIp: boolean;
+  banDevice: boolean;
   hidePassMessage: boolean;
   disableBlackBE: boolean;
   kickByLocalMsg: boolean;
@@ -23,6 +24,7 @@ interface Config {
 export const config: Config = {
   apiToken: '',
   banIp: true,
+  banDevice: true,
   hidePassMessage: true,
   disableBlackBE: true,
   kickByCloudMsg: true,
