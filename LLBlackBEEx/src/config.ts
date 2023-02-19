@@ -1,6 +1,5 @@
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
-import { URL } from 'url';
 
 import { dataPath } from './const';
 
