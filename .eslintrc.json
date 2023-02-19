@@ -17,26 +17,30 @@
   },
   "plugins": ["@typescript-eslint", "eslint-plugin-import"],
   "rules": {
-    "@typescript-eslint/triple-slash-reference": "off",
     "@typescript-eslint/no-empty-function": "off",
-    "import/extensions": "off",
-    "no-shadow": "off",
+    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/no-non-null-assertion": "off",
     "@typescript-eslint/no-shadow": "error",
-    "no-restricted-syntax": "off",
-    "no-param-reassign": "off",
-    "no-bitwise": "off",
     "@typescript-eslint/no-var-requires": "off",
+    "@typescript-eslint/triple-slash-reference": "off",
+    "camelcase": "off",
+    "import/extensions": "off",
+    "import/no-named-default": "off",
+    "import/order": "off",
+    "import/prefer-default-export": "off",
+    "max-classes-per-file": "off",
+    "no-bitwise": "off",
     "no-console": "off",
     "no-continue": "off",
-    "import/no-named-default": "off",
-    "camelcase": "off",
-    "@typescript-eslint/no-explicit-any": "off",
-    "no-underscore-dangle": "off",
-    "max-classes-per-file": "off",
-    "import/order": "off",
-    "@typescript-eslint/no-non-null-assertion": "off"
+    "no-param-reassign": "off",
+    "no-restricted-syntax": "off",
+    "no-shadow": "off",
+    "no-underscore-dangle": "off"
   },
   "settings": {
+    "import/parsers": {
+      "@typescript-eslint/parser": [".ts"]
+    },
     "import/resolver": {
       "node": {
         "extensions": [".js", ".jsx", ".ts", ".tsx"]
@@ -44,7 +48,6 @@
       "typescript": {
         "project": []
       }
-    },
-    "import/parsers": { "@typescript-eslint/parser": [".ts"] }
+    }
   }
 }
