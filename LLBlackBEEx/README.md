@@ -11,6 +11,8 @@
 
 BlackBE 站长：NyanCatda [云黑官网](https://blackbe.xyz) [赞助云黑](https://afdian.net/@BlackBE)
 
+**新 nodejs 版插件开发中，旧版本插件文件请在 [v0](./v0) 文件夹中寻找**
+
 ## 指令列表
 
 |                      指令                       |      权限      |                        介绍                         |
