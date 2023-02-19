@@ -9,3 +9,4 @@ test.*
 *.llplugin
 /yoyorobot/
 *.min.*
+pnpm-lock.yaml
