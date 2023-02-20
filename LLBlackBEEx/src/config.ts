@@ -86,8 +86,8 @@ export function reloadConfig() {
       host: hostname,
       port: Number(port),
       protocol: protocol.replace(':', ''),
-      auth: { username, password },
     };
+    if (username || password) config.proxy.auth = { username, password };
     saveConfig();
   }
 

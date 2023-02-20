@@ -23,3 +23,7 @@ export function formatDate(
 
   return formatted;
 }
+
+export function delFormatCode(text: string): string {
+  return text.replace(/§[0-9abcdefgklmnor]/g, '');
+}

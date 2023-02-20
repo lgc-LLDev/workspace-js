@@ -11,7 +11,7 @@ export interface BlackBECommonInfo {
   info: string;
   level: 1 | 2 | 3;
   qq: number;
-  photos: string[];
+  photos?: string[];
 }
 
 export interface BlackBECommonData {
@@ -119,7 +119,7 @@ export const cachedPrivResp: BlackBEPrivRespInfo[] = [];
 
 function getHeaders(auth = true) {
   const headers: any = {
-    'Content-Type': 'application/json',
+    // 'Content-Type': 'application/json',
   };
 
   if (auth && config.apiToken)
@@ -136,7 +136,7 @@ export const isBlackBESuccessReturn = <T>(
 ): v is BlackBESuccessReturn<T> => v.success && 'data' in v; // && !!v.data;
 
 function checkIsWithToken(options: { withToken?: boolean }): boolean {
-  const withToken = options.withToken ?? false;
+  const withToken = options.withToken ?? true;
   delete options.withToken;
   return withToken;
 }
@@ -179,7 +179,7 @@ export async function uploadPrivatePiece(
   return (
     await axios.post(
       buildUrl('private/repositories/piece/upload'),
-      JSON.stringify({ ...defaultUploadParams, options }),
+      { ...defaultUploadParams, options },
       {
         headers: getHeaders(),
         proxy: config.proxy,
@@ -192,14 +192,10 @@ export async function deletePrivatePiece(options: {
   piece_uuid: string;
 }): Promise<BlackBEReturn<[]>> {
   return (
-    await axios.post(
-      buildUrl('private/repositories/piece/delete'),
-      JSON.stringify(options),
-      {
-        headers: getHeaders(),
-        proxy: config.proxy,
-      }
-    )
+    await axios.post(buildUrl('private/repositories/piece/delete'), options, {
+      headers: getHeaders(),
+      proxy: config.proxy,
+    })
   ).data;
 }
 
@@ -229,9 +225,9 @@ export async function checkPrivate(options: {
   return (
     await axios.post(
       buildUrl('check/private'),
-      JSON.stringify({
+      {
         repositories_uuid: cachedPrivResp.map((v) => v.uuid),
-      }),
+      },
       {
         params: options,
         headers: getHeaders(),
