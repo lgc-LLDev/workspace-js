@@ -2,15 +2,15 @@
 /// <reference path="d:\Coding\LLSEAids/dts/llaids/src/index.d.ts"/>
 
 import {
-  pluginDescription,
-  pluginExtra,
-  pluginName,
-  pluginVersion,
+  PLUGIN_DESCRIPTION,
+  PLUGIN_EXTRA,
+  PLUGIN_NAME,
+  PLUGIN_VERSION,
 } from './const';
 
-logger.setTitle(pluginName);
+logger.setTitle(PLUGIN_NAME);
 
 require('./command');
 require('./listener');
 
-ll.registerPlugin(pluginName, pluginDescription, pluginVersion, pluginExtra);
+ll.registerPlugin(PLUGIN_NAME, PLUGIN_DESCRIPTION, PLUGIN_VERSION, PLUGIN_EXTRA);
