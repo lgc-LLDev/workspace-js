@@ -1,10 +1,10 @@
 // LiteLoaderScript Dev Helper
-/// <reference path="d:\Coding\LLSEAids/dts/llaids/src/index.d.ts"/>
+/// <reference path="d:\Coding\bds\LLSEAids/dts/llaids/src/index.d.ts"/>
 /* eslint-disable no-await-in-loop */
 /* global ll mc logger ParticleColor File */
 
 const PLUGIN_NAME = 'Airdrop';
-const PLUGIN_VERSION = [0, 1, 2];
+const PLUGIN_VERSION = [0, 1, 3];
 
 const PLUGIN_DATA_PATH = `plugins/${PLUGIN_NAME}`;
 const PLUGIN_CONFIG_PATH = `${PLUGIN_DATA_PATH}/config.json`;
@@ -109,6 +109,8 @@ const DIM_NAMESPACE_MAP = {
  */
 /** @type {DroppedAirdrop[]} */
 const droppedAirdrops = [];
+/** @type {string[]} */
+const summonedToolMans = [];
 let droppingAirdrop = false;
 
 let particleSpawner = null;
@@ -265,6 +267,8 @@ async function trySummonAirdrop(pos) {
     z,
     dimId
   );
+  summonedToolMans.push(loadToolMan.uuid);
+
   while (!mc.getBlock(x, maxY, z, dimId)) {
     await sleep(200);
   }
@@ -284,15 +288,16 @@ async function trySummonAirdrop(pos) {
       y += 1;
 
       if (mc.setBlock(x, y, z, dimId, 'minecraft:chest')) {
-        await sleep(0);
         logger.info(`空投最终落点 x=${x} y=${y} z=${z} dimId=${dimId}`);
 
-        const chest = mc.getBlock(x, y, z, dimId);
-        const container = chest.getContainer();
+        // 没办法 凑合一下吧
+        setTimeout(() => {
+          const chest = mc.getBlock(x, y, z, dimId);
+          const container = chest.getContainer();
 
-        for (const it of getAwardItems()) {
-          container.addItemToFirstEmptySlot(it);
-        }
+          for (const it of getAwardItems())
+            container.addItemToFirstEmptySlot(it);
+        }, 0);
 
         droppedAirdrops.push({
           pos: [x, y, z, dimId],
@@ -408,6 +413,14 @@ function removeAirdrop(pos) {
   }
 }
 
+mc.listen('onMobHurt', (mob) => {
+  if (mob.isPlayer()) {
+    const player = mob.toPlayer();
+    if (summonedToolMans.includes(player.uuid)) return false;
+  }
+  return true;
+});
+
 mc.listen('onBlockChanged', (before, after) => {
   if (before.type === 'minecraft:chest' && after.type === 'minecraft:air') {
     const { pos } = after;
@@ -423,35 +436,47 @@ mc.listen('onBlockInteracted', (_, block) => {
 });
 
 /**
+ * @param {string} msg
+ * @param {Player} [player]
+ */
+const tell = (msg, player) => {
+  if (player) {
+    player.tell(msg);
+  } else {
+    const msgFormatted = msg.replace(/§[a-z0-9]/g, '');
+    if (msg.startsWith('§c')) logger.error(msgFormatted);
+    else logger.info(msgFormatted);
+  }
+};
+
+/**
+ * @param {Player} [player]
+ */
+function preCheckCanSummon(player) {
+  const { maxAirdrops } = pluginConfig;
+
+  if (droppedAirdrops.length >= maxAirdrops) {
+    tell(`§c已达同时存在空投上限，无法再召唤空投`, player);
+    return false;
+  }
+  if (droppingAirdrop) {
+    tell(`§c已经有一个空投在召唤了，请不要同时召唤其他空投`, player);
+    return false;
+  }
+
+  return true;
+}
+
+/**
  * @param {Player} [player]
  * @returns {Promise<boolean>}
  */
 async function summonAirdrop(player) {
-  /** @param {string} msg */
-  const tell = (msg) => {
-    if (player) {
-      player.tell(msg);
-    } else {
-      const msgFormatted = msg.replace(/§[a-z0-9]/g, '');
-      if (msg.startsWith('§c')) logger.error(msgFormatted);
-      else logger.info(msgFormatted);
-    }
-  };
-
   const {
     summonRadius,
     maxRetries,
     range: [[minX, minZ], [maxX, maxZ]],
-    maxAirdrops,
   } = pluginConfig;
-  if (droppedAirdrops.length >= maxAirdrops) {
-    tell(`§c已达同时存在空投上限，无法再召唤空投`);
-    return false;
-  }
-  if (droppingAirdrop) {
-    tell(`§c已经有一个空投在召唤了，请不要同时召唤其他空投`);
-    return false;
-  }
 
   let centerX;
   let centerZ;
@@ -497,13 +522,17 @@ async function summonAirdrop(player) {
 }
 
 if (pluginConfig.interval) {
-  setInterval(() => summonAirdrop(), pluginConfig.interval);
+  setInterval(() => {
+    if (preCheckCanSummon()) summonAirdrop();
+  }, pluginConfig.interval);
 }
 
 mc.listen('onUseItem', (player) => {
   const { triggerItem } = pluginConfig;
   const item = player.getHand();
   if (item.type === triggerItem) {
+    if (!preCheckCanSummon(player)) return false;
+
     const { count } = item;
     modifyItemCount(item, count - 1);
     player.refreshItems();
