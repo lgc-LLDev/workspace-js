@@ -89,7 +89,7 @@ export interface BlackBEPrivUploadData {
   uuid: string;
 }
 
-interface BlackBEReturn<T> {
+export interface BlackBEReturn<T> {
   success: boolean;
   status: number;
   message: string;

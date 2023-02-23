@@ -1,11 +1,14 @@
 import {
+  BlackBECommonData,
   BlackBECommonInfo,
+  BlackBEPrivateData,
   BlackBEPrivateInfo,
+  BlackBEReturn,
   check,
   checkPrivate,
   getRepoByUuid,
 } from './blackbe';
-import { LocalBlackListItem, localList } from './config';
+import { config, LocalBlackListItem, localList } from './config';
 import { PLUGIN_NAME } from './const';
 import { CustomFormEx } from './form-api';
 import {
@@ -42,16 +45,22 @@ export function isPrivateInfo(
 export async function queryBlackBE(
   param: string
 ): Promise<BlackBEQueryInfoWithRespId[]> {
-  const [comm, priv] = await Promise.all([
-    check({ name: param, qq: param, xuid: param, withToken: false }),
-    checkPrivate({ name: param, qq: param, xuid: param }),
-  ]);
+  const tasks: [
+    Promise<BlackBEReturn<BlackBECommonData>>,
+    Promise<BlackBEReturn<BlackBEPrivateData[]>>?
+  ] = [check({ name: param, qq: param, xuid: param, withToken: false })];
+  if (config.apiToken)
+    tasks.push(checkPrivate({ name: param, qq: param, xuid: param }));
+    
+  const [comm, priv] = await Promise.all(tasks);
   const ret: BlackBEQueryInfoWithRespId[] = [];
 
   if (comm.data.exist) ret.push(...comm.data.info);
-  for (const repo of priv.data) {
-    if (repo.exist)
-      ret.push(...repo.info.map((v) => ({ ...v, black_id: repo.repo_uuid })));
+  if (priv) {
+    for (const repo of priv.data) {
+      if (repo.exist)
+        ret.push(...repo.info.map((v) => ({ ...v, black_id: repo.repo_uuid })));
+    }
   }
 
   return ret;
@@ -218,7 +227,5 @@ export async function queryFormAsync(player: Player, param?: string) {
 export function queryCmd(player?: Player, param?: string) {
   if (player) wrapAsyncFunc(queryFormAsync)(player, param);
   else
-    wrapAsyncFunc(async () =>
-      logger.info(delFormatCode(await query(param)))
-    )();
+    wrapAsyncFunc(async () => logger.info(delFormatCode(await query(param))))();
 }
