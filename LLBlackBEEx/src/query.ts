@@ -144,7 +144,7 @@ export function formatLocalInfo(
   moreInfo = false
 ): string {
   const formatList = (li: string[]): string =>
-    li.map((v) => `  - §b${v}§r`).join('\n');
+    li.length ? `\n${li.map((v) => `  - §b${v}§r`).join('\n')}` : '§b无';
 
   const { name, xuid, ips, endTime, clientIds, reason } = obj;
   const lines: string[] = [];
@@ -153,9 +153,9 @@ export function formatLocalInfo(
   lines.push(`§2XUID§r： §b${xuid}`);
   lines.push(`§2记录原因§r： §b${reason}`);
   if (moreInfo)
-    lines.push(`§2结束时间§r：\n${formatDate({ date: new Date(endTime) })}`);
-  if (moreInfo) lines.push(`§2已记录IP§r：\n${formatList(ips)}`);
-  if (moreInfo) lines.push(`§2已记录设备ID§r：\n${formatList(clientIds)}`);
+    lines.push(`§2结束时间§r： §b${formatDate({ date: new Date(endTime) })}`);
+  if (moreInfo) lines.push(`§2已记录IP§r： ${formatList(ips)}`);
+  if (moreInfo) lines.push(`§2已记录设备ID§r： ${formatList(clientIds)}`);
 
   return lines.join('\n');
 }
@@ -196,7 +196,7 @@ export async function query(param?: string, moreInfo = false): Promise<string> {
       blackBEResults.map((v) => formatBlackBEInfo(v, moreInfo))
     )),
   ];
-  return `${heading}\n\n${texts.join(`§r-=-=-=-=-=-=-=-=-=-=-=-=-=-`)}`;
+  return `${heading}\n\n${texts.join(`§r\n-=-=-=-=-=-=-=-=-=-=-=-=-=-\n`)}`;
 }
 
 export async function queryFormAsync(player: Player, param?: string) {
@@ -222,12 +222,15 @@ export async function queryFormAsync(player: Player, param?: string) {
     ({ param } = res);
   }
 
-  const resultForm = new CustomFormEx(PLUGIN_NAME);
-  await resultForm.addLabel(await query(param, op)).sendAsync(player);
+  const resultForm = mc.newSimpleForm();
+  resultForm.setTitle(PLUGIN_NAME).setContent(await query(param, op));
+  player.sendForm(resultForm, () => {});
 }
 
 export function queryCmd(player?: Player, param?: string) {
   if (player) wrapAsyncFunc(queryFormAsync)(player, param);
   else
-    wrapAsyncFunc(async () => logger.info(delFormatCode(await query(param))))();
+    wrapAsyncFunc(async () =>
+      logger.info(delFormatCode(await query(param, true)))
+    )();
 }
