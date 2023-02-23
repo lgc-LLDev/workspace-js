@@ -51,7 +51,7 @@ export async function queryBlackBE(
   ] = [check({ name: param, qq: param, xuid: param, withToken: false })];
   if (config.apiToken)
     tasks.push(checkPrivate({ name: param, qq: param, xuid: param }));
-    
+
   const [comm, priv] = await Promise.all(tasks);
   const ret: BlackBEQueryInfoWithRespId[] = [];
 
@@ -192,7 +192,9 @@ export async function query(param?: string, moreInfo = false): Promise<string> {
 
   const texts = [
     ...localResults.map((v) => formatLocalInfo(v, moreInfo)),
-    ...blackBEResults.map((v) => formatBlackBEInfo(v, moreInfo)),
+    ...(await Promise.all(
+      blackBEResults.map((v) => formatBlackBEInfo(v, moreInfo))
+    )),
   ];
   return `${heading}\n\n${texts.join(`§r-=-=-=-=-=-=-=-=-=-=-=-=-=-`)}`;
 }
