@@ -182,8 +182,8 @@ export async function query(param?: string, moreInfo = false): Promise<string> {
 
   const headingSuffixes: string[] = [];
   if (localNum) headingSuffixes.push(`§l§e${localNum} §r§a条本地库记录`);
-  if (commNum) headingSuffixes.push(`§l§e${localNum} §r§a条云黑公有库记录`);
-  if (privNum) headingSuffixes.push(`§l§e${localNum} §r§a条云黑私有库记录`);
+  if (commNum) headingSuffixes.push(`§l§e${commNum} §r§a条云黑公有库记录`);
+  if (privNum) headingSuffixes.push(`§l§e${privNum} §r§a条云黑私有库记录`);
   if (headingSuffixes.length > 1)
     headingSuffixes.push(`和 ${headingSuffixes.pop()}`);
   const heading =
