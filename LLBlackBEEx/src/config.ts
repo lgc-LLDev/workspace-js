@@ -29,7 +29,7 @@ export interface LocalBlackListItem {
   ips: string[];
   clientIds: string[];
   reason: string;
-  /** Date.toJson() */ endTime: string;
+  /** Date.toJson() */ endTime?: string;
   /** @deprecated */ ip?: string;
 }
 

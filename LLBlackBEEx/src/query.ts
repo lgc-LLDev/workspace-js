@@ -153,7 +153,11 @@ export function formatLocalInfo(
   lines.push(`§2XUID§r： §b${xuid}`);
   lines.push(`§2记录原因§r： §b${reason}`);
   if (moreInfo)
-    lines.push(`§2结束时间§r： §b${formatDate({ date: new Date(endTime) })}`);
+    lines.push(
+      `§2结束时间§r： §b${
+        endTime ? formatDate({ date: new Date(endTime) }) : '永久'
+      }`
+    );
   if (moreInfo) lines.push(`§2已记录IP§r： ${formatList(ips)}`);
   if (moreInfo) lines.push(`§2已记录设备ID§r： ${formatList(clientIds)}`);
 
