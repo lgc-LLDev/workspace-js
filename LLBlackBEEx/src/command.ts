@@ -1,7 +1,6 @@
-import { BlackBECommonData, BlackBEReturn, check } from './blackbe';
 import { reloadConfig } from './config';
 import { PLUGIN_NAME } from './const';
-import { delFormatCode } from './util';
+import { queryCmd } from './query';
 
 interface CmdMainCallbackData {
   enumReload?: 'reload';
@@ -33,16 +32,6 @@ cmdMain.overload([]);
 cmdMain.setCallback((_, { player }, out, result: CmdMainCallbackData) => {
   const { enumReload, enumQuery, queryString } = result;
 
-  function outputMsgInTimeout(msg: string, error = false) {
-    if (!player) {
-      msg = delFormatCode(msg);
-      if (error) logger.error(msg);
-      else logger.info(msg);
-    } else {
-      player.tell(`${error ? `§c` : ''}${msg}`);
-    }
-  }
-
   if (enumReload) {
     if (!checkOp(player)) {
       out.error(ONLT_OP_TEXT);
@@ -60,23 +49,7 @@ cmdMain.setCallback((_, { player }, out, result: CmdMainCallbackData) => {
   }
 
   if (enumQuery) {
-    // 简单写一下，测试用
-    const query = queryString?.trim();
-    if (!query) {
-      out.error(`请输入查询内容`);
-      return false;
-    }
-
-    setTimeout(async () => {
-      let res: BlackBEReturn<BlackBECommonData>;
-      try {
-        res = await check({ name: query, qq: query, xuid: query });
-      } catch (e) {
-        outputMsgInTimeout(`出错了！\n${String(e)}`, true);
-        return;
-      }
-      outputMsgInTimeout(`§a查询成功§r\n${JSON.stringify(res, null, 2)}`);
-    });
+    queryCmd(player, queryString);
     return true;
   }
 

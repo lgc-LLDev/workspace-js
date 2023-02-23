@@ -14,8 +14,8 @@ export interface Config {
   banDevice: boolean;
   hidePassMessage: boolean;
   disableBlackBE: boolean;
-  kickByLocalMsg: boolean;
-  kickByCloudMsg: boolean;
+  kickByLocalMsg: string;
+  kickByCloudMsg: string;
   serverName: string;
   proxy: AxiosProxyConfig | false;
   apiHost: string;
@@ -28,8 +28,8 @@ export interface LocalBlackListItem {
   xuid: string;
   ips: string[];
   clientIds: string[];
-  /**  Date.toJson() */ endTime: string;
   reason: string;
+  /** Date.toJson() */ endTime: string;
   /** @deprecated */ ip?: string;
 }
 
@@ -43,8 +43,8 @@ export const config: Config = {
   banDevice: true,
   hidePassMessage: true,
   disableBlackBE: true,
-  kickByCloudMsg: true,
-  kickByLocalMsg: true,
+  kickByCloudMsg: `§c您已被BlackBE云端黑名单封禁§r\n\n详情请访问 §ghttps://blackbe.work/`,
+  kickByLocalMsg: `§c您已被服务器封禁§r\n\n解封时间: §g%ENDTIME%§r\n封禁原因: §g%REASON%`,
   serverName: '服务器',
   proxy: false,
   apiHost: 'https://api.blackbe.work/',

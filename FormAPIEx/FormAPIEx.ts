@@ -1,5 +1,5 @@
 // LiteLoaderScript Dev Helper
-/// <reference path="d:\Coding\LLSEAids/dts/llaids/src/index.d.ts"/>
+/// <reference path="d:\Coding\bds\LLSEAids/dts/llaids/src/index.d.ts"/>
 
 export class CustomFormEx<T = Record<string, never>> {
   #title = '';

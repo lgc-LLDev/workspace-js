@@ -1,7 +1,7 @@
 /* eslint-disable no-restricted-syntax */
 /* global ll JsonConfigFile logger mc data Format network PermType ParamType */
 // LiteLoaderScript Dev Helper
-/// <reference path="d:\Coding\LLSEAids/dts/llaids/src/index.d.ts"/>
+/// <reference path="d:\Coding\bds\LLSEAids/dts/llaids/src/index.d.ts"/>
 
 const pluginName = 'LLBlackBEEx';
 const pluginVersion = [0, 2, 0];
@@ -620,9 +620,9 @@ function formLocalBanInfo(player, banData) {
         formBanList(pl);
       } else if (id === 0) {
         // eslint-disable-next-line no-use-before-define
-        formChange(pl,banData)
+        formChange(pl, banData);
       } else if (id === 1) {
-        unbanPlayerLocal(banData.name)
+        unbanPlayerLocal(banData.name);
       }
     }
   );
@@ -630,59 +630,68 @@ function formLocalBanInfo(player, banData) {
 
 /**
  * 更新封禁信息
- * @param {Player} player 
- * @param {*} banData 
+ * @param {Player} player
+ * @param {*} banData
  */
-function formChange(player,banData){
-  const lefttime = banData.endTime? Math.round((new Date(banData.endTime).getTime() - new Date().getTime())/60000).toString() : ""
+function formChange(player, banData) {
+  const lefttime = banData.endTime
+    ? Math.round(
+        (new Date(banData.endTime).getTime() - new Date().getTime()) / 60000
+      ).toString()
+    : '';
   player.sendForm(
-    mc.newCustomForm()
+    mc
+      .newCustomForm()
       .setTitle(`${Aqua}${pluginName}${Clear} - ${Green}Manage`)
       .addLabel(`您正在更改玩家 ：${banData.name} 的封禁信息`)
-      .addInput('封禁时长', '数字(永久封禁请忽视本参数)',lefttime)
-      .addStepSlider('时间单位', ['分', '时', '日', '永久封禁'], lefttime===""?3:0)
-      .addInput('封禁原因',"",banData.reason),
-      (pl, ret) => {
-        if (ret == null) {
-          formLocalBanInfo(pl);
-          return;
-        }
-        let time = 0;
-        let showtime;
-        if (ret[2] === 0) {
-          time = ret[1] * 1;
-        }
-        if (ret[2] === 1) {
-          time = ret[1] * 60;
-        }
-        if (ret[2] === 2) {
-          time = ret[1] * 1440;
-        }
-        if (ret[2] === 3) {
-          showtime = '永久封禁';
-          time = null;
-        } else {
-          showtime = `${time}分`;
-        }
-        pl.sendModalForm(
-          '确认修改',
-          `玩家名:${banData.name}\n封禁时长:${showtime}`,
-          '确认修改',
-          '取消',
-          (pl_, confirm) => {
-            if (confirm) {
-              if (banPlayerLocal(banData.name, ret[3], time)) {
-                pl_.sendText(`${Green}已成功修改玩家 ${banData.name} 的封禁信息`);
-              } else {
-                pl_.sendText(`${Red}玩家 ${banData.name} 封禁信息修改失败`);
-              }
-            } else {
-              formChange(pl_);
-            }
-          }
-        );
+      .addInput('封禁时长', '数字(永久封禁请忽视本参数)', lefttime)
+      .addStepSlider(
+        '时间单位',
+        ['分', '时', '日', '永久封禁'],
+        lefttime === '' ? 3 : 0
+      )
+      .addInput('封禁原因', '', banData.reason),
+    (pl, ret) => {
+      if (ret == null) {
+        formLocalBanInfo(pl);
+        return;
       }
-  )
+      let time = 0;
+      let showtime;
+      if (ret[2] === 0) {
+        time = ret[1] * 1;
+      }
+      if (ret[2] === 1) {
+        time = ret[1] * 60;
+      }
+      if (ret[2] === 2) {
+        time = ret[1] * 1440;
+      }
+      if (ret[2] === 3) {
+        showtime = '永久封禁';
+        time = null;
+      } else {
+        showtime = `${time}分`;
+      }
+      pl.sendModalForm(
+        '确认修改',
+        `玩家名:${banData.name}\n封禁时长:${showtime}`,
+        '确认修改',
+        '取消',
+        (pl_, confirm) => {
+          if (confirm) {
+            if (banPlayerLocal(banData.name, ret[3], time)) {
+              pl_.sendText(`${Green}已成功修改玩家 ${banData.name} 的封禁信息`);
+            } else {
+              pl_.sendText(`${Red}玩家 ${banData.name} 封禁信息修改失败`);
+            }
+          } else {
+            formChange(pl_);
+          }
+        }
+      );
+    }
+  );
 }
 
 // 自动解ban

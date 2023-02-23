@@ -36,7 +36,7 @@ export interface BlackBEPrivateData {
   repo_success: boolean;
   repo_uuid: string;
   exist: boolean;
-  info: BlackBEPrivateInfo;
+  info: BlackBEPrivateInfo[];
 }
 
 export interface BlackBEPrivRespInfo {
@@ -89,21 +89,15 @@ export interface BlackBEPrivUploadData {
   uuid: string;
 }
 
-interface BlackBEBaseReturn {
+interface BlackBEReturn<T> {
   success: boolean;
   status: number;
   message: string;
   version: string;
   codename: string;
   time: number;
-}
-
-interface BlackBESuccessReturn<T> extends BlackBEBaseReturn {
-  success: true;
   data: T;
 }
-
-export type BlackBEReturn<T> = BlackBESuccessReturn<T> | BlackBEBaseReturn;
 
 const defaultUploadParams = {
   xuid: '1000000000000000',
@@ -131,9 +125,10 @@ function getHeaders(auth = true) {
 const buildUrl = (path: string): string =>
   String(new URL(`openapi/v3/${path}`, config.apiHost));
 
-export const isBlackBESuccessReturn = <T>(
-  v: BlackBEReturn<T>
-): v is BlackBESuccessReturn<T> => v.success && 'data' in v; // && !!v.data;
+// 请求失败 axios 会抛出错误
+// export const isBlackBESuccessReturn = <T>(
+//   v: BlackBEReturn<T>
+// ): v is BlackBESuccessReturn<T> => v.success && 'data' in v; // && !!v.data;
 
 function checkIsWithToken(options: { withToken?: boolean }): boolean {
   const withToken = options.withToken ?? true;
@@ -151,10 +146,10 @@ export async function getPrivateRespList(): Promise<
     })
   ).data;
 
-  if (isBlackBESuccessReturn(resp)) {
-    cachedPrivResp.length = 0;
-    cachedPrivResp.push(...resp.data.repositories_list);
-  }
+  // if (isBlackBESuccessReturn(resp)) {
+  cachedPrivResp.length = 0;
+  cachedPrivResp.push(...resp.data.repositories_list);
+  // }
 
   return resp;
 }
@@ -219,7 +214,7 @@ export async function checkPrivate(options: {
   name?: string;
   qq?: string;
   xuid?: string;
-}): Promise<BlackBEReturn<BlackBEPrivateData>> {
+}): Promise<BlackBEReturn<BlackBEPrivateData[]>> {
   if (!cachedPrivResp.length) await getPrivateRespList();
 
   return (
@@ -242,7 +237,7 @@ export async function getRepoByUuid(
 ): Promise<BlackBEPrivRespInfo | null> {
   if (uuid === '1')
     return {
-      uuid: '1',
+      uuid,
       name: '公有库',
       type: 1,
       list_num: 0,

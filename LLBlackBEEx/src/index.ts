@@ -1,5 +1,5 @@
 // LiteLoaderScript Dev Helper
-/// <reference path="d:\Coding\LLSEAids/dts/llaids/src/index.d.ts"/>
+/// <reference path="d:\Coding\bds\LLSEAids/dts/llaids/src/index.d.ts"/>
 
 import {
   PLUGIN_DESCRIPTION,
@@ -13,4 +13,9 @@ logger.setTitle(PLUGIN_NAME);
 require('./command');
 require('./listener');
 
-ll.registerPlugin(PLUGIN_NAME, PLUGIN_DESCRIPTION, PLUGIN_VERSION, PLUGIN_EXTRA);
+ll.registerPlugin(
+  PLUGIN_NAME,
+  PLUGIN_DESCRIPTION,
+  PLUGIN_VERSION,
+  PLUGIN_EXTRA
+);
