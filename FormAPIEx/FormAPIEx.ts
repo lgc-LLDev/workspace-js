@@ -1,6 +1,8 @@
 // LiteLoaderScript Dev Helper
 /// <reference path="d:\Coding\bds\LLSEAids/dts/llaids/src/index.d.ts"/>
 
+export const VERSION = [0, 1, 0];
+
 export function sendModalFormAsync(
   player: Player,
   title: string,

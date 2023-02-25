@@ -11,6 +11,7 @@ const {
 const PLUGIN_NAME = 'FormAPIExExample';
 
 /**
+ * 功能性函数，用 setTimeout 调用异步函数，以免出现玄学问题
  * @template {unknown[]} T
  * @param {(...args: T) => Promise<unknown>} func
  * @returns {(...args: T) => void}
@@ -21,6 +22,7 @@ function wrapAsyncFunc(func) {
   };
 }
 
+// 异步发送确认取消表单
 const cmdTestModalForm = mc.newCommand('testmodal', PLUGIN_NAME, PermType.Any);
 cmdTestModalForm.overload();
 cmdTestModalForm.setCallback((_, { player }) => {
@@ -39,6 +41,7 @@ cmdTestModalForm.setCallback((_, { player }) => {
 });
 cmdTestModalForm.setup();
 
+// 异步自定义表单，带格式化返回值为object
 const cmdTestCustomForm = mc.newCommand(
   'testcustom',
   PLUGIN_NAME,
@@ -70,6 +73,16 @@ cmdTestCustomForm.setCallback((_, { player }) => {
         '逸久忆旧罢一龄',
       ])
       .sendAsync(player);
+    /*
+      格式化后的返回值是这样的
+      {
+        "switch1": false,
+        "input1": "",
+        "drop1": 1,
+        "slider1": 114,
+        "stepSlider1": 1
+      }
+    */
     player.tell(res ? JSON.stringify(res, null, 2) : String(res));
   })();
 
@@ -77,6 +90,7 @@ cmdTestCustomForm.setCallback((_, { player }) => {
 });
 cmdTestCustomForm.setup();
 
+// 快速构建一个列表表单，带搜索带翻页
 const cmdTestSimpleFormEx = mc.newCommand(
   'testsimple',
   PLUGIN_NAME,
@@ -94,7 +108,7 @@ cmdTestSimpleFormEx.setCallback((_, { player }) => {
     form.canTurnPage = true;
     form.canJumpPage = true;
     form.hasSearchButton = true;
-    const result = await form.sendAsync(player);
+    const result = await form.sendAsync(player); // 会返回 buttons 数组中的一个元素
     player.tell(String(result));
   })();
 
@@ -102,6 +116,7 @@ cmdTestSimpleFormEx.setCallback((_, { player }) => {
 });
 cmdTestSimpleFormEx.setup();
 
+// 构建一个功能性 SimpleForm
 const cmdTestSimpleFormEx2 = mc.newCommand(
   'testsimple2',
   PLUGIN_NAME,
@@ -120,7 +135,7 @@ cmdTestSimpleFormEx2.setCallback((_, { player }) => {
     form.title = PLUGIN_NAME;
     form.content = '§a请选择要执行的操作：';
     form.formatter = ([title]) => [`§3${title}`];
-    const result = await form.sendAsync(player);
+    const result = await form.sendAsync(player); // 返回值和上面同理
     if (result) result[1]();
   })();
 
