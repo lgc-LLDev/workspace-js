@@ -2,7 +2,11 @@
 /// <reference path="d:\Coding\bds\LLSEAids/dts/llaids/src/index.d.ts"/>
 /* global ll mc logger PermType File */
 
-const { CustomFormEx, SimpleFormEx } = require('./FormAPIEx');
+const {
+  CustomFormEx,
+  SimpleFormEx,
+  sendModalFormAsync,
+} = require('./FormAPIEx');
 
 const PLUGIN_NAME = 'FormAPIExExample';
 
@@ -16,6 +20,24 @@ function wrapAsyncFunc(func) {
     setTimeout(() => func(...args).catch((e) => logger.error(String(e))), 0);
   };
 }
+
+const cmdTestModalForm = mc.newCommand('testmodal', PLUGIN_NAME, PermType.Any);
+cmdTestModalForm.overload();
+cmdTestModalForm.setCallback((_, { player }) => {
+  if (!player) return false;
+
+  wrapAsyncFunc(async () => {
+    const result = await sendModalFormAsync(
+      player,
+      PLUGIN_NAME,
+      'A test ModalForm~'
+    );
+    player.tell(String(result));
+  })();
+
+  return true;
+});
+cmdTestModalForm.setup();
 
 const cmdTestCustomForm = mc.newCommand(
   'testcustom',

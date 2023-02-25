@@ -1,6 +1,42 @@
 // LiteLoaderScript Dev Helper
 /// <reference path="d:\Coding\bds\LLSEAids/dts/llaids/src/index.d.ts"/>
 
+export function sendModalFormAsync(
+  player: Player,
+  title: string,
+  content: string,
+  confirmButton = '§a确认',
+  cancelButton = '§c取消'
+): Promise<boolean> {
+  return new Promise((resolve) => {
+    player.sendModalForm(
+      title,
+      content,
+      confirmButton,
+      cancelButton,
+      (_, data) => setTimeout(() => resolve(data), 0)
+    );
+  });
+}
+
+export function sendFormAsync(
+  player: Player,
+  form: SimpleForm
+): Promise<number | null | undefined>;
+export function sendFormAsync(
+  player: Player,
+  form: CustomForm
+): Promise<(string | boolean | number)[] | null | undefined>;
+export function sendFormAsync(
+  player: Player,
+  form: SimpleForm | CustomForm
+): Promise<number | (string | boolean | number)[] | null | undefined> {
+  return new Promise((resolve) => {
+    // @ts-expect-error 这里的错误是误报（?
+    player.sendForm(form, (_, data) => setTimeout(() => resolve(data), 0));
+  });
+}
+
 export class CustomFormEx<T = Record<string, never>> {
   public title = '';
 
@@ -81,13 +117,7 @@ export class CustomFormEx<T = Record<string, never>> {
     return this as CustomFormEx<T & { [k in TId]: number }>;
   }
 
-  private parseReturn(data: (string | boolean | number)[]): T;
-
-  private parseReturn(data: null): null;
-
-  private parseReturn(data: (string | boolean | number)[] | null): T | null {
-    if (!data) return data;
-
+  private parseReturn(data: (string | boolean | number)[]): T {
     const res: any = {};
     for (let i = 0; i < data.length; i += 1) {
       const k = this.#objectIds[i];
@@ -97,15 +127,11 @@ export class CustomFormEx<T = Record<string, never>> {
     return res;
   }
 
-  sendAsync(player: Player): Promise<T | null> {
+  async sendAsync(player: Player): Promise<T | null> {
     this.#form.setTitle(this.title);
-    return new Promise((resolve) => {
-      player.sendForm(this.#form, (_, data) => {
-        setTimeout(() => {
-          resolve(this.parseReturn(data));
-        }, 0);
-      });
-    });
+    const data = await sendFormAsync(player, this.#form);
+    if (data === null || data === undefined) return null;
+    return this.parseReturn(data);
   }
 }
 
@@ -143,7 +169,7 @@ export class SimpleFormAsync {
     return this;
   }
 
-  async sendAsync(player: Player): Promise<number | null | undefined> {
+  sendAsync(player: Player): Promise<number | null | undefined> {
     const form = mc
       .newSimpleForm()
       .setTitle(this.title)
@@ -152,13 +178,7 @@ export class SimpleFormAsync {
       if (image) form.addButton(text, image);
       else form.addButton(text);
     });
-    return new Promise((resolve) => {
-      player.sendForm(form, (_, data) => {
-        setTimeout(() => {
-          resolve(data);
-        }, 0);
-      });
-    });
+    return sendFormAsync(player, form);
   }
 }
 
