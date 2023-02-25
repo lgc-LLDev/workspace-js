@@ -24,11 +24,11 @@ export interface Config {
 }
 
 export interface LocalBlackListItem {
-  name: string;
-  xuid: string;
-  ips: string[];
-  clientIds: string[];
-  reason: string;
+  name?: string;
+  xuid?: string;
+  ips?: string[];
+  clientIds?: string[];
+  reason?: string;
   /** Date.toJson() */ endTime?: string;
   /** @deprecated */ ip?: string;
 }

@@ -9,14 +9,14 @@ import {
   getRepoByUuid,
 } from './blackbe';
 import { config, LocalBlackListItem, localList } from './config';
-import { PLUGIN_NAME } from './const';
+import { DIVIDING_LINE, PLUGIN_NAME } from './const';
 import { CustomFormEx } from './form-api';
 import {
-  wrapAsyncFunc,
   checkValInArray,
   delFormatCode,
   formatDate,
   fuzzyValIsInArray,
+  wrapAsyncFunc,
 } from './util';
 
 export type BlackBEQueryInfo = BlackBECommonInfo | BlackBEPrivateInfo;
@@ -76,15 +76,16 @@ export function queryLocal(
   // 遍历列表中的对象
   for (const it of localList.list) {
     const { name, xuid, ips, clientIds } = it;
-    const willCheck: (string | string[])[] = [name, xuid];
+    const willCheck: (string | string[] | undefined)[] = [name, xuid];
     if (moreInfo) willCheck.push(ips, clientIds);
 
     // 遍历待匹配的值
-    for (const v of willCheck) {
+    for (const val of willCheck) {
       // 使用搜索词匹配 value
       if (
+        val &&
         checkValInArray(params, (pr) =>
-          v instanceof Array ? fuzzyValIsInArray(v, pr) : pr.includes(v)
+          val instanceof Array ? fuzzyValIsInArray(val, pr) : pr.includes(val)
         )
       ) {
         ret.push(it);
@@ -143,15 +144,15 @@ export function formatLocalInfo(
   obj: LocalBlackListItem,
   moreInfo = false
 ): string {
-  const formatList = (li: string[]): string =>
-    li.length ? `\n${li.map((v) => `  - §b${v}§r`).join('\n')}` : '§b无';
+  const formatList = (li?: string[]): string =>
+    li && li.length ? `\n${li.map((v) => `  - §b${v}§r`).join('\n')}` : '§b无';
 
   const { name, xuid, ips, endTime, clientIds, reason } = obj;
   const lines: string[] = [];
 
-  lines.push(`§2玩家ID§r： §l§d${name}§r`);
-  lines.push(`§2XUID§r： §b${xuid}`);
-  lines.push(`§2记录原因§r： §b${reason}`);
+  lines.push(`§2玩家ID§r： §l§d${name ?? '未知'}§r`);
+  lines.push(`§2XUID§r： §b${xuid ?? '未知'}`);
+  lines.push(`§2记录原因§r： §b${reason ?? '无'}`);
   if (moreInfo)
     lines.push(
       `§2结束时间§r： §b${
@@ -200,7 +201,7 @@ export async function query(param?: string, moreInfo = false): Promise<string> {
       blackBEResults.map((v) => formatBlackBEInfo(v, moreInfo))
     )),
   ];
-  return `${heading}\n\n${texts.join(`§r\n-=-=-=-=-=-=-=-=-=-=-=-=-=-\n`)}`;
+  return `${heading}\n\n${texts.join(`§r\n${DIVIDING_LINE}\n`)}`;
 }
 
 export async function queryFormAsync(player: Player, param?: string) {

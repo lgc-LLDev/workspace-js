@@ -13,3 +13,5 @@ export const PLUGIN_EXTRA = {
 
 export const dataPath = join('./plugins', PLUGIN_NAME);
 if (!existsSync(dataPath)) mkdirSync(dataPath);
+
+export const DIVIDING_LINE = '-=-=-=-=-=-=-=-=-=-=-=-=-=-';

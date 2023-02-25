@@ -14,7 +14,7 @@ function checkOp(player?: Player): boolean {
 }
 
 const ONLT_OP_TEXT = '此命令仅限OP执行';
-const NO_CONSOLE_TEXT = '此命令无法在控制台中执行';
+// const NO_CONSOLE_TEXT = '此命令无法在控制台中执行';
 
 const cmdMain = mc.newCommand('blackbe', PLUGIN_NAME, PermType.Any);
 
