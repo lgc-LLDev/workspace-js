@@ -9,7 +9,7 @@ export function sendModalFormAsync(
   content: string,
   confirmButton = '§a确认',
   cancelButton = '§c取消'
-): Promise<boolean> {
+): Promise<boolean | null | undefined> {
   return new Promise((resolve) => {
     player.sendModalForm(
       title,
