@@ -14,12 +14,7 @@ import {
 import { config, LocalBlackListItem, localList, saveLocalList } from './config';
 import { PLUGIN_NAME } from './const';
 import { CustomFormEx, sendModalFormAsync, SimpleFormEx } from './form-api';
-import {
-  checkValInArray,
-  formatDate,
-  fuzzyValIsInArray,
-  wrapAsyncFunc,
-} from './util';
+import { checkValInArray, formatDate, wrapAsyncFunc } from './util';
 
 export async function queryBlackBE(
   param: string
@@ -54,16 +49,21 @@ export async function queryBlackBE(
 
 export function queryLocal(
   param: string,
-  moreInfo = false
+  moreInfo = false,
+  strict = false
 ): LocalBlackListItem[] {
-  const params = param.split(/\s/g);
+  param = param.trim();
+  const params = strict ? [param] : param.split(/\s/g);
   const ret: LocalBlackListItem[] = [];
 
   // 遍历列表中的对象
   for (const it of localList.list) {
     const { name, xuid, ips, clientIds } = it;
-    const willCheck: (string | string[] | undefined)[] = [name, xuid];
-    if (moreInfo) willCheck.push(ips, clientIds);
+    const willCheck: (string | undefined)[] = [name, xuid];
+    if (moreInfo) {
+      if (ips) willCheck.push(...ips);
+      if (clientIds) willCheck.push(...clientIds);
+    }
 
     // 遍历待匹配的值
     for (const val of willCheck) {
@@ -71,7 +71,7 @@ export function queryLocal(
       if (
         val &&
         checkValInArray(params, (pr) =>
-          val instanceof Array ? fuzzyValIsInArray(val, pr) : pr.includes(val)
+          strict ? val === pr : val.includes(pr)
         )
       ) {
         ret.push(it);
