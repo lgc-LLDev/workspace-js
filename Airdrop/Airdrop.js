@@ -4,7 +4,7 @@
 /* global ll mc logger ParticleColor File */
 
 const PLUGIN_NAME = 'Airdrop';
-const PLUGIN_VERSION = [0, 1, 3];
+const PLUGIN_VERSION = [0, 1, 4];
 
 const PLUGIN_DATA_PATH = `plugins/${PLUGIN_NAME}`;
 const PLUGIN_CONFIG_PATH = `${PLUGIN_DATA_PATH}/config.json`;
@@ -256,7 +256,6 @@ async function trySummonAirdrop(pos) {
   // const dimName = getDimNamespace(dimId);
   const [maxY, minY] = DIM_HEIGHT_RANGE[dimId];
 
-  let success = false;
   const timestamp = new Date().getTime();
 
   logger.log(`空投选点 x=${x} z=${z} dimId=${dimId}，召唤假人加载区块`);
@@ -290,6 +289,12 @@ async function trySummonAirdrop(pos) {
       if (mc.setBlock(x, y, z, dimId, 'minecraft:chest')) {
         logger.info(`空投最终落点 x=${x} y=${y} z=${z} dimId=${dimId}`);
 
+        droppedAirdrops.push({
+          pos: [x, y, z, dimId],
+          id: timestamp,
+          barColor: randomInt(0, 6),
+        });
+
         // 没办法 凑合一下吧
         setTimeout(() => {
           const chest = mc.getBlock(x, y, z, dimId);
@@ -297,16 +302,12 @@ async function trySummonAirdrop(pos) {
 
           for (const it of getAwardItems())
             container.addItemToFirstEmptySlot(it);
+
+          loadToolMan.simulateDisconnect();
         }, 0);
 
-        droppedAirdrops.push({
-          pos: [x, y, z, dimId],
-          id: timestamp,
-          barColor: randomInt(0, 6),
-        });
         playTipSound();
-        success = true;
-        break;
+        return true;
       }
     }
     lastBlock = block;
@@ -314,7 +315,7 @@ async function trySummonAirdrop(pos) {
   }
 
   loadToolMan.simulateDisconnect();
-  return success;
+  return false;
 }
 
 /**
