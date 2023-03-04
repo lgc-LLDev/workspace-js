@@ -1,5 +1,15 @@
-import { LocalBlackListItem, localList, saveLocalList } from './config';
-import { pushNoDuplicateItem, stripIp } from './util';
+import { config, LocalBlackListItem, localList, saveLocalList } from './config';
+import { formatDate, pushNoDuplicateItem, stripIp } from './util';
+
+export function formatLocalKickMsg(data: LocalBlackListItem): string {
+  const { reason, endTime } = data;
+  return config.kickByLocalMsg
+    .replace(/%REASON%/g, reason ?? '未知')
+    .replace(
+      /%ENDTIME%/g,
+      endTime ? formatDate({ date: new Date(endTime) }) : '永久'
+    );
+}
 
 export function banPlayer(
   data:
@@ -54,6 +64,10 @@ export function banPlayer(
       it.clientIds = pushNoDuplicateItem(it.clientIds || [], clientId);
     if (endTime) it.endTime = endTime;
     if (reason) it.reason = reason;
+  }
+
+  if ('player' in data) {
+    data.player.kick(formatLocalKickMsg(results[0]));
   }
 
   saveLocalList();
