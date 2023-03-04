@@ -14,7 +14,7 @@ function checkOp(player?: Player): boolean {
 }
 
 const ONLT_OP_TEXT = '此命令仅限OP执行';
-// const NO_CONSOLE_TEXT = '此命令无法在控制台中执行';
+const NO_CONSOLE_TEXT = '此命令无法在控制台中执行';
 
 const cmdMain = mc.newCommand('blackbe', PLUGIN_NAME, PermType.Any);
 
@@ -49,6 +49,13 @@ cmdMain.setCallback((_, { player }, out, result: CmdMainCallbackData) => {
   }
 
   if (enumQuery) {
+    if (!player) {
+      out.error(NO_CONSOLE_TEXT);
+      out.error(
+        '本地黑名单请查阅插件配置文件，云黑记录请上云黑官网查询，懒得再给控制台查询写一套代码了'
+      );
+      return false;
+    }
     queryCmd(player, queryString);
     return true;
   }

@@ -99,6 +99,14 @@ export interface BlackBEReturn<T> {
   data: T;
 }
 
+export type BlackBEQueryInfo = BlackBECommonInfo | BlackBEPrivateInfo;
+export type BlackBEPrivInfoWithRespId = BlackBEPrivateInfo & {
+  black_id: string;
+};
+export type BlackBEQueryInfoWithRespId =
+  | BlackBECommonInfo
+  | BlackBEPrivInfoWithRespId;
+
 const defaultUploadParams = {
   xuid: '1000000000000000',
   info: '无',
@@ -249,6 +257,22 @@ export async function getRepoByUuid(
   for (const resp of cachedPrivResp) if (resp.uuid === uuid) return resp;
 
   return null;
+}
+
+/**
+ * @returns [ 等级描述，对应颜色 ]
+ */
+export function formatBlackBELvl(lvl: number): [string, string] {
+  switch (lvl) {
+    case 1:
+      return ['有作弊行为，但未对其他玩家造成实质上损害', '§e'];
+    case 2:
+      return ['有作弊行为，且对玩家造成一定的损害', '§g'];
+    case 3:
+      return ['严重破坏服务器，对玩家和服务器造成较大的损害', '§c'];
+    default:
+      return ['未知', '§r'];
+  }
 }
 
 export function clearCache() {

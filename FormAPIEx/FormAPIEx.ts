@@ -1,7 +1,10 @@
 // LiteLoaderScript Dev Helper
 /// <reference path="d:\Coding\bds\LLSEAids/dts/llaids/src/index.d.ts"/>
 
-export const VERSION = [0, 1, 0];
+export const NAME = 'FormAPIEx';
+export const VERSION = [0, 1, 1];
+export const AUTHOR = 'student_2333 <lgc2333@126.com>';
+export const LICENSE = 'Apache-2.0';
 
 export function sendModalFormAsync(
   player: Player,
@@ -145,11 +148,13 @@ export class SimpleFormAsync {
   /** [ text, image ] */
   public buttons: [string, string?][] = [];
 
-  constructor(options: {
-    title?: string;
-    content?: string;
-    buttons?: [string, string?][];
-  }) {
+  constructor(
+    options: {
+      title?: string;
+      content?: string;
+      buttons?: [string, string?][];
+    } = {}
+  ) {
     const { title, content, buttons } = options;
     if (title) this.title = title;
     if (content) this.content = content;
@@ -217,7 +222,7 @@ export class SimpleFormEx<T> {
     param
   ): T[] => {
     const params = param.split(/\s/g);
-    const formatted = buttons.map((v) => String(v));
+    const formatted = this.formatButtons(buttons).map((v) => v[0]);
     const result: T[] = [];
     formatted.forEach((v, i) => {
       for (const wd of params) {
