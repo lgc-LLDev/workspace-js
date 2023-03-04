@@ -1,4 +1,4 @@
-import { isPromise } from 'util/types';
+// import { isPromise } from 'util/types';
 import {
   BlackBECommonData,
   BlackBECommonInfo,
@@ -11,9 +11,9 @@ import {
   formatBlackBELvl,
   getRepoByUuid,
 } from './blackbe';
-import { config, LocalBlackListItem, localList } from './config';
+import { config, LocalBlackListItem, localList, saveLocalList } from './config';
 import { PLUGIN_NAME } from './const';
-import { CustomFormEx, SimpleFormEx } from './form-api';
+import { CustomFormEx, sendModalFormAsync, SimpleFormEx } from './form-api';
 import {
   checkValInArray,
   formatDate,
@@ -207,10 +207,17 @@ export async function processListFormReturn(res: any): Promise<boolean> {
     const [, func] = res;
     if (!func) return false;
 
-    const cb = func();
-    if (isPromise(cb)) await cb;
+    /* const cb = */ func();
+    // if (isPromise(cb)) await cb;
   }
   return true;
+}
+
+export function delLocalListItem(obj: LocalBlackListItem): boolean {
+  const { list } = localList;
+  const deleted = list.splice(list.indexOf(obj), 1);
+  saveLocalList();
+  return !!deleted.length;
 }
 
 export async function localItemForm(
@@ -218,8 +225,65 @@ export async function localItemForm(
   obj: LocalBlackListItem,
   moreInfo = false
 ): Promise<boolean> {
+  const delItem = async () => {
+    if (
+      await sendModalFormAsync(
+        player,
+        PLUGIN_NAME,
+        '§6真的要删除这条黑名单项目吗？\n§c删前请三思！！！'
+      )
+    ) {
+      player.tell(
+        delLocalListItem(obj)
+          ? '§a删除成功！'
+          : '§c删除失败！未找到该黑名单项目'
+      );
+    } else {
+      player.tell('§6删除操作已取消');
+    }
+  };
+
+  const editTime = async () => {
+    const res = await new CustomFormEx(PLUGIN_NAME)
+      .addSwitch('forever', '是否永久封禁', !obj.endTime)
+      .addInput(
+        'time',
+        '如果不是永久封禁，请输入从现在开始要封禁的时间（单位分钟）'
+      )
+      .sendAsync(player);
+
+    if (res) {
+      const { forever, time } = res;
+      const timeNum = Number(time);
+      if ((!timeNum || timeNum <= 0) && !forever) {
+        await sendModalFormAsync(
+          player,
+          PLUGIN_NAME,
+          '§c请输入正确的封禁时间！',
+          '§a知道了',
+          '§a知道了'
+        );
+        editTime();
+        return;
+      }
+
+      delLocalListItem(obj);
+      obj.endTime = forever
+        ? undefined
+        : new Date(Date.now() + timeNum * 60 * 1000).toJSON();
+
+      localList.list.push(obj);
+      saveLocalList();
+      player.tell('§a操作成功！');
+    } else {
+      player.tell('§6修改操作已取消');
+    }
+  };
+
   const form = setupFunctionalityForm([['返回', null]]);
   form.content = formatLocalInfo(obj, moreInfo);
+  if (moreInfo)
+    form.buttons.unshift(['删除条目', delItem], ['修改封禁时间', editTime]);
   // eslint-disable-next-line no-return-await
   return await processListFormReturn(await form.sendAsync(player));
 }
