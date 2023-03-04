@@ -4,7 +4,7 @@ import { formatDate, pushNoDuplicateItem, stripIp } from './util';
 export function formatLocalKickMsg(data: LocalBlackListItem): string {
   const { reason, endTime } = data;
   return config.kickByLocalMsg
-    .replace(/%REASON%/g, reason ?? '未知')
+    .replace(/%REASON%/g, reason ?? '无')
     .replace(
       /%ENDTIME%/g,
       endTime ? formatDate({ date: new Date(endTime) }) : '永久'
