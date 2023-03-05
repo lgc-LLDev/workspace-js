@@ -121,7 +121,7 @@ export function buildCustomForm(
       }
       case 'slider': {
         const { title, min, max, step, defaultVal } = obj;
-        form.addSlider(title, min, max, step ?? 1, defaultVal ?? 0);
+        form.addSlider(title, min, max, step ?? 1, defaultVal ?? min);
         break;
       }
       case 'stepSlider': {
