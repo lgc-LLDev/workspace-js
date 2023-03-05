@@ -189,10 +189,8 @@ export class CustomFormEx<
     return this as any;
   }
 
-  unshift<
-    TObj extends CustomFormObject,
-    TId extends TObj extends CustomFormLabelObject ? string | undefined : string
-  >(
+  // prettier-ignore
+  unshift<TObj extends CustomFormObject, TId extends TObj extends CustomFormLabelObject ? string | undefined : string>(
     id: TId,
     obj: TObj
   ): CustomFormEx<
@@ -202,10 +200,8 @@ export class CustomFormEx<
     return this as any;
   }
 
-  insert<
-    TObj extends CustomFormObject,
-    TId extends TObj extends CustomFormLabelObject ? string | undefined : string
-  >(
+  // prettier-ignore
+  insert<TObj extends CustomFormObject, TId extends TObj extends CustomFormLabelObject ? string | undefined : string>(
     index: number,
     id: TId,
     obj: TObj
