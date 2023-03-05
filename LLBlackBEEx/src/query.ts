@@ -13,7 +13,12 @@ import {
 } from './blackbe';
 import { config, LocalBlackListItem, localList, saveLocalList } from './config';
 import { PLUGIN_NAME } from './const';
-import { CustomFormEx, sendModalFormAsync, SimpleFormEx } from './form-api';
+import {
+  CustomFormEx,
+  CustomFormInputObject,
+  sendModalFormAsync,
+  SimpleFormEx,
+} from './form-api';
 import { checkValInArray, formatDate, wrapAsyncFunc } from './util';
 
 export async function queryBlackBE(
@@ -376,7 +381,9 @@ export async function queryFormAsync(player: Player, param?: string) {
   const op = player.isOP();
 
   if (!param) {
-    let form: CustomFormEx<{ param: string }> = new CustomFormEx(PLUGIN_NAME);
+    let form: CustomFormEx<{ param: CustomFormInputObject }> = new CustomFormEx(
+      PLUGIN_NAME
+    );
     form = form.addLabel(
       `§a请输入查询内容， 我们会帮你从本地库${
         config.disableBlackBE ? '' : '与 BlackBE '

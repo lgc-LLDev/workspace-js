@@ -2,7 +2,7 @@
 /// <reference path="d:\Coding\bds\LLSEAids/dts/llaids/src/index.d.ts"/>
 
 export const NAME = 'FormAPIEx';
-export const VERSION = [0, 2, 0];
+export const VERSION = [0, 2, 0] as const;
 export const AUTHOR = 'student_2333 <lgc2333@126.com>';
 export const LICENSE = 'Apache-2.0';
 
@@ -146,7 +146,7 @@ export type CustomFormObjectReturnType<T extends CustomFormObject> =
         | CustomFormSliderObject
         | CustomFormStepSliderObject
     ? number
-    : null;
+    : undefined;
 
 export type CustomFormReturn<T extends { [id: string]: CustomFormObject }> = {
   [k in keyof T]: CustomFormObjectReturnType<T[k]>;
@@ -214,7 +214,10 @@ export class CustomFormEx<
 
   // remove object
 
-  remove<TId extends keyof T>(id: TId): CustomFormEx<Omit<T, TId>> {
+  // 奇怪小 bug，这里的返回类型如果用 CustomFormEx<Omit<T, TId>>，parseReturn 的返回值所有属性都会提示 never，只能妥协一下了
+  remove<TId extends keyof T>(
+    id: TId
+  ): CustomFormEx<T & { [k in TId]: never }> {
     for (let i = 0; i < this.#objects.length; i += 1) {
       const [objId] = this.#objects[i];
       if (objId === id) {
@@ -303,12 +306,12 @@ export class CustomFormEx<
   // send
 
   private parseReturn(
-    data: (string | boolean | number)[]
+    data: (string | boolean | number | null | undefined)[]
   ): CustomFormReturn<T> {
     const res: any = {};
     for (let i = 0; i < data.length; i += 1) {
       const [id] = this.#objects[i];
-      const val = data[i];
+      const val = data[i] ?? undefined;
       if (id) res[id] = val;
     }
     return res;

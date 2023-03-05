@@ -6,7 +6,7 @@ const {
   CustomFormEx,
   SimpleFormEx,
   sendModalFormAsync,
-} = require('./FormAPIEx');
+} = require('./lib/FormAPIEx');
 
 const PLUGIN_NAME = 'FormAPIExExample';
 
@@ -52,7 +52,7 @@ cmdTestCustomForm.setCallback((_, { player }) => {
   if (!player) return false;
 
   wrapAsyncFunc(async () => {
-    const res = await new CustomFormEx(PLUGIN_NAME)
+    const form = new CustomFormEx(PLUGIN_NAME)
       .addLabel('This is a Label')
       .addSwitch('switch1', 'This is a Switch')
       .addInput('input1', 'this is a Input Box', {
@@ -71,8 +71,8 @@ cmdTestCustomForm.setCallback((_, { player }) => {
         '逸一时',
         '误一世',
         '逸久忆旧罢一龄',
-      ])
-      .sendAsync(player);
+      ]);
+
     /*
       格式化后的返回值是这样的
       {
@@ -83,6 +83,7 @@ cmdTestCustomForm.setCallback((_, { player }) => {
         "stepSlider1": 1
       }
     */
+    const res = await form.sendAsync(player);
     player.tell(res ? JSON.stringify(res, null, 2) : String(res));
   })();
 
