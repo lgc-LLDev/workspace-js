@@ -2,7 +2,7 @@
 /// <reference path="d:\Coding\bds\LLSEAids/dts/llaids/src/index.d.ts"/>
 
 export const NAME = 'FormAPIEx';
-export const VERSION = [0, 1, 1];
+export const VERSION = [0, 2, 0];
 export const AUTHOR = 'student_2333 <lgc2333@126.com>';
 export const LICENSE = 'Apache-2.0';
 
@@ -37,20 +37,134 @@ export function sendFormAsync(
   form: SimpleForm | CustomForm
 ): Promise<number | (string | boolean | number)[] | null | undefined> {
   return new Promise((resolve) => {
-    // @ts-expect-error 这里的错误是误报（?
+    // @ts-expect-error 这里的错误是误报
     player.sendForm(form, (_, data) => setTimeout(() => resolve(data), 0));
   });
 }
 
-export class CustomFormEx<T = Record<string, never>> {
+export interface CustomFormLabelObject {
+  type: 'label';
+  text: string;
+}
+
+export interface CustomFormInputObject {
+  type: 'input';
+  title: string;
+  placeholder?: string;
+  defaultVal?: string;
+}
+
+export interface CustomFormSwitchObject {
+  type: 'switch';
+  title: string;
+  defaultVal?: boolean;
+}
+
+export interface CustomFormDropdownObject {
+  type: 'dropdown';
+  title: string;
+  items: string[];
+  defaultVal?: number;
+}
+
+export interface CustomFormSliderObject {
+  type: 'slider';
+  title: string;
+  min: number;
+  max: number;
+  step?: number;
+  defaultVal?: number;
+}
+
+export interface CustomFormStepSliderObject {
+  type: 'stepSlider';
+  title: string;
+  items: string[];
+  defaultVal?: number;
+}
+
+export type CustomFormObject =
+  | CustomFormLabelObject
+  | CustomFormInputObject
+  | CustomFormSwitchObject
+  | CustomFormDropdownObject
+  | CustomFormSliderObject
+  | CustomFormStepSliderObject;
+
+export function buildCustomForm(
+  formTitle: string,
+  objects: CustomFormObject[]
+): CustomForm {
+  const form = new CustomForm();
+  form.setTitle(formTitle);
+
+  for (const obj of objects) {
+    switch (obj.type) {
+      case 'label': {
+        form.addLabel(obj.text);
+        break;
+      }
+      case 'input': {
+        const { title, placeholder, defaultVal } = obj;
+        form.addInput(title, placeholder ?? '', defaultVal ?? '');
+        break;
+      }
+      case 'switch': {
+        const { title, defaultVal } = obj;
+        form.addSwitch(title, defaultVal ?? false);
+        break;
+      }
+      case 'dropdown': {
+        const { title, items, defaultVal } = obj;
+        form.addDropdown(title, items, defaultVal ?? 0);
+        break;
+      }
+      case 'slider': {
+        const { title, min, max, step, defaultVal } = obj;
+        form.addSlider(title, min, max, step ?? 1, defaultVal ?? 0);
+        break;
+      }
+      case 'stepSlider': {
+        const { title, items, defaultVal } = obj;
+        form.addStepSlider(title, items, defaultVal ?? 0);
+        break;
+      }
+      // no default
+    }
+  }
+
+  return form;
+}
+
+export type CustomFormObjectReturnType<T extends CustomFormObject> =
+  T extends CustomFormInputObject
+    ? string
+    : T extends CustomFormSwitchObject
+    ? boolean
+    : T extends
+        | CustomFormDropdownObject
+        | CustomFormSliderObject
+        | CustomFormStepSliderObject
+    ? number
+    : null;
+
+export type CustomFormReturn<T extends { [id: string]: CustomFormObject }> = {
+  [k in keyof T]: CustomFormObjectReturnType<T[k]>;
+};
+
+export class CustomFormEx<
+  T extends { [id: string]: CustomFormObject } = Record<string, never>
+> {
   public title = '';
 
-  #form = mc.newCustomForm();
-
-  #objectIds: (keyof T | null)[] = [];
+  #objects: [string | undefined, CustomFormObject][] = [];
 
   constructor(title = '') {
     this.title = title;
+  }
+
+  get objects() {
+    return this.#objects;
   }
 
   setTitle(val: string) {
@@ -58,32 +172,107 @@ export class CustomFormEx<T = Record<string, never>> {
     return this;
   }
 
-  addLabel(text: string) {
-    this.#form.addLabel(text);
-    this.#objectIds.push(null);
-    return this;
+  // add object
+
+  // 格式化之后着色有问题
+  // prettier-ignore
+  push<TObj extends CustomFormObject, TId extends TObj extends CustomFormLabelObject ? string | undefined : string>(
+    id: TId,
+    obj: TObj
+  ): CustomFormEx<
+    T &
+      (TId extends string
+        ? { [k in TId]: TObj }
+        : Record<string, never>)
+  > {
+    this.#objects.push([id, obj]);
+    return this as any;
+  }
+
+  unshift<
+    TObj extends CustomFormObject,
+    TId extends TObj extends CustomFormLabelObject ? string | undefined : string
+  >(
+    id: TId,
+    obj: TObj
+  ): CustomFormEx<
+    T & (TId extends string ? { [k in TId]: TObj } : Record<string, never>)
+  > {
+    this.#objects.unshift([id, obj]);
+    return this as any;
+  }
+
+  insert<
+    TObj extends CustomFormObject,
+    TId extends TObj extends CustomFormLabelObject ? string | undefined : string
+  >(
+    index: number,
+    id: TId,
+    obj: TObj
+  ): CustomFormEx<
+    T & (TId extends string ? { [k in TId]: TObj } : Record<string, never>)
+  > {
+    this.#objects.splice(index, 0, [id, obj]);
+    return this as any;
+  }
+
+  // remove object
+
+  remove<TId extends keyof T>(id: TId): CustomFormEx<Omit<T, TId>> {
+    for (let i = 0; i < this.#objects.length; i += 1) {
+      const [objId] = this.#objects[i];
+      if (objId === id) {
+        this.#objects.splice(i, 1);
+        break;
+      }
+    }
+    return this as any;
+  }
+
+  // get object by id
+
+  get<TId extends keyof T>(id: TId): T[TId] | null {
+    for (const [objId, val] of this.#objects) {
+      if (objId === id) return val as any;
+    }
+    return null;
+  }
+
+  // manually add object methods
+
+  addLabel(text: string): CustomFormEx<T>;
+
+  addLabel<TId extends string>(
+    id: TId,
+    text: string
+  ): CustomFormEx<T & { [k in TId]: CustomFormLabelObject }>;
+
+  addLabel(arg1: string, arg2?: string) {
+    const id = arg2 ? arg1 : undefined;
+    const text = arg2 ?? arg1;
+    return this.push(id, { type: 'label', text });
   }
 
   addInput<TId extends string>(
     id: TId,
     title: string,
     options: { placeholder?: string; default?: string } = {}
-  ): CustomFormEx<T & { [k in TId]: string }> {
-    const placeholder = options.placeholder ?? '';
-    const defaultVal = options.default ?? '';
-    this.#form.addInput(title, placeholder, defaultVal);
-    this.#objectIds.push(id as unknown as keyof T);
-    return this as CustomFormEx<T & { [k in TId]: string }>;
+  ): CustomFormEx<T & { [k in TId]: CustomFormInputObject }> {
+    const { placeholder, default: defaultVal } = options;
+    return this.push(id, {
+      type: 'input',
+      title,
+      placeholder,
+      defaultVal,
+    });
   }
 
   addSwitch<TId extends string>(
     id: TId,
     title: string,
     defaultVal = false
-  ): CustomFormEx<T & { [k in TId]: boolean }> {
-    this.#form.addSwitch(title, defaultVal);
-    this.#objectIds.push(id as unknown as keyof T);
-    return this as CustomFormEx<T & { [k in TId]: boolean }>;
+  ): CustomFormEx<T & { [k in TId]: CustomFormSwitchObject }> {
+    return this.push(id, { type: 'switch', title, defaultVal });
   }
 
   addDropdown<TId extends string>(
@@ -91,10 +280,8 @@ export class CustomFormEx<T = Record<string, never>> {
     title: string,
     items: string[],
     defaultVal = 0
-  ): CustomFormEx<T & { [k in TId]: number }> {
-    this.#form.addDropdown(title, items, defaultVal);
-    this.#objectIds.push(id as unknown as keyof T);
-    return this as CustomFormEx<T & { [k in TId]: number }>;
+  ): CustomFormEx<T & { [k in TId]: CustomFormDropdownObject }> {
+    return this.push(id, { type: 'dropdown', title, items, defaultVal });
   }
 
   addSlider<TId extends string>(
@@ -103,12 +290,9 @@ export class CustomFormEx<T = Record<string, never>> {
     min: number,
     max: number,
     options: { step?: number; default?: number } = {}
-  ): CustomFormEx<T & { [k in TId]: number }> {
-    const step = options.step ?? 1;
-    const defaultVal = options.default ?? min;
-    this.#form.addSlider(title, min, max, step, defaultVal);
-    this.#objectIds.push(id as unknown as keyof T);
-    return this as CustomFormEx<T & { [k in TId]: number }>;
+  ): CustomFormEx<T & { [k in TId]: CustomFormSliderObject }> {
+    const { step, default: defaultVal } = options;
+    return this.push(id, { type: 'slider', title, min, max, step, defaultVal });
   }
 
   addStepSlider<TId extends string>(
@@ -116,25 +300,32 @@ export class CustomFormEx<T = Record<string, never>> {
     title: string,
     items: string[],
     defaultVal = 0
-  ): CustomFormEx<T & { [k in TId]: number }> {
-    this.#form.addStepSlider(title, items, defaultVal);
-    this.#objectIds.push(id as unknown as keyof T);
-    return this as CustomFormEx<T & { [k in TId]: number }>;
+  ): CustomFormEx<T & { [k in TId]: CustomFormStepSliderObject }> {
+    return this.push(id, { type: 'stepSlider', title, items, defaultVal });
   }
 
-  private parseReturn(data: (string | boolean | number)[]): T {
+  // send
+
+  private parseReturn(
+    data: (string | boolean | number)[]
+  ): CustomFormReturn<T> {
     const res: any = {};
     for (let i = 0; i < data.length; i += 1) {
-      const k = this.#objectIds[i];
-      const v = data[i];
-      if (k) res[k] = v;
+      const [id] = this.#objects[i];
+      const val = data[i];
+      if (id) res[id] = val;
     }
     return res;
   }
 
-  async sendAsync(player: Player): Promise<T | null> {
-    this.#form.setTitle(this.title);
-    const data = await sendFormAsync(player, this.#form);
+  async sendAsync(player: Player): Promise<CustomFormReturn<T> | null> {
+    const data = await sendFormAsync(
+      player,
+      buildCustomForm(
+        this.title,
+        this.objects.map((v) => v[1])
+      )
+    );
     if (data === null || data === undefined) return null;
     return this.parseReturn(data);
   }
