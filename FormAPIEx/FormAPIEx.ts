@@ -95,7 +95,7 @@ export function buildCustomForm(
   formTitle: string,
   objects: CustomFormObject[]
 ): CustomForm {
-  const form = new CustomForm();
+  const form = mc.newCustomForm();
   form.setTitle(formTitle);
 
   for (const obj of objects) {

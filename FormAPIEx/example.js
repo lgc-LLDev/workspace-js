@@ -18,7 +18,10 @@ const PLUGIN_NAME = 'FormAPIExExample';
  */
 function wrapAsyncFunc(func) {
   return (...args) => {
-    setTimeout(() => func(...args).catch((e) => logger.error(String(e))), 0);
+    setTimeout(
+      () => func(...args).catch((e) => logger.error(`${e}\n${e.stack ?? ''}`)),
+      0
+    );
   };
 }
 
