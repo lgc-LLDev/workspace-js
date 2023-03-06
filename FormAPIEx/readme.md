@@ -16,7 +16,7 @@
 
 ## 示例
 
-见 [example.js](https://github.com/lgc2333/LLSEPlugins/blob/formapi-0.2.2/FormAPIEx/example.js)
+见 [example.js](https://github.com/lgc2333/LLSEPlugins/blob/main/FormAPIEx/example.js)
 
 ## 编译
 
