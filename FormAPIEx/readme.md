@@ -4,6 +4,8 @@
 
 让处理表单返回值变得更容易！
 
+需要已编译好的版本？去看看 [Releases](https://github.com/lgc2333/LLSEPlugins/releases) 吧！
+
 ## 介绍
 
 本工具库提供了一些类以及函数，可以让各位更方便地处理表单返回值，不用再为需要自己处理表单按钮的 ID 而烦恼了！  
@@ -14,7 +16,7 @@
 
 ## 示例
 
-见 [example.js](./example.js)
+见 [example.js](https://github.com/lgc2333/LLSEPlugins/blob/formapi-0.2.2/FormAPIEx/example.js)
 
 ## 编译
 
