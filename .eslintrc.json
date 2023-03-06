@@ -20,7 +20,10 @@
     "@typescript-eslint/ban-types": [
       "error",
       {
-        "extendDefaults": true
+        "extendDefaults": true,
+        "types": {
+          "{}": false
+        }
       }
     ],
     "@typescript-eslint/no-empty-function": "off",
