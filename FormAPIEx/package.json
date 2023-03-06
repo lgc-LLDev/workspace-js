@@ -18,5 +18,13 @@
   },
   "files": [
     "lib/**"
-  ]
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lgc2333/LLSEPlugins.git"
+  },
+  "bugs": {
+    "url": "https://github.com/lgc2333/LLSEPlugins/issues"
+  },
+  "homepage": "https://github.com/lgc2333/LLSEPlugins/FormAPIEx"
 }
