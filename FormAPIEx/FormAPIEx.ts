@@ -152,9 +152,7 @@ export type CustomFormReturn<T extends { [id: string]: CustomFormObject }> = {
   [k in keyof T]: CustomFormObjectReturnType<T[k]>;
 };
 
-export class CustomFormEx<
-  T extends { [id: string]: CustomFormObject } = Record<string, never>
-> {
+export class CustomFormEx<T extends { [id: string]: CustomFormObject } = {}> {
   public title = '';
 
   #objects: [string | undefined, CustomFormObject][] = [];
@@ -214,10 +212,7 @@ export class CustomFormEx<
 
   // remove object
 
-  // 奇怪小 bug，这里的返回类型如果用 CustomFormEx<Omit<T, TId>>，parseReturn 的返回值所有属性都会提示 never，只能妥协一下了
-  remove<TId extends keyof T>(
-    id: TId
-  ): CustomFormEx<T & { [k in TId]: never }> {
+  remove<TId extends keyof T>(id: TId): CustomFormEx<Omit<T, TId>> {
     for (let i = 0; i < this.#objects.length; i += 1) {
       const [objId] = this.#objects[i];
       if (objId === id) {
