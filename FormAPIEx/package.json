@@ -1,0 +1,22 @@
+{
+  "name": "form-api-ex",
+  "version": "0.2.1",
+  "description": "Work with LLSE forms easily!",
+  "main": "lib/FormAPIEx.js",
+  "license": "Apache-2.0",
+  "author": "student_2333 <lgc2333@126.com>",
+  "keywords": [
+    "liteloader",
+    "liteloaderbds",
+    "llse",
+    "lxl",
+    "ll"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch"
+  },
+  "files": [
+    "lib/**"
+  ]
+}

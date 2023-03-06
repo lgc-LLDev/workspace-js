@@ -2,7 +2,7 @@
 /// <reference path="d:\Coding\bds\LLSEAids/dts/llaids/src/index.d.ts"/>
 
 export const NAME = 'FormAPIEx';
-export const VERSION = [0, 2, 0] as const;
+export const VERSION = [0, 2, 1] as const;
 export const AUTHOR = 'student_2333 <lgc2333@126.com>';
 export const LICENSE = 'Apache-2.0';
 
