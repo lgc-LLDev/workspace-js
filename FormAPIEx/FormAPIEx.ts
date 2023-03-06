@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/ban-types */
 // LiteLoaderScript Dev Helper
-/// <reference path="d:\Coding\bds\LLSEAids/dts/llaids/src/index.d.ts"/>
+/// <reference path="D:\Docu.Haiyue\LiteLoader\HelperLib\src\index.d.ts"/>
 
 export const NAME = 'FormAPIEx';
 export const VERSION = [0, 2, 0] as const;
@@ -37,7 +38,6 @@ export function sendFormAsync(
   form: SimpleForm | CustomForm
 ): Promise<number | (string | boolean | number)[] | null | undefined> {
   return new Promise((resolve) => {
-    // @ts-expect-error 这里的错误是误报
     player.sendForm(form, (_, data) => setTimeout(() => resolve(data), 0));
   });
 }
@@ -181,7 +181,7 @@ export class CustomFormEx<T extends { [id: string]: CustomFormObject } = {}> {
     T &
       (TId extends string
         ? { [k in TId]: TObj }
-        : Record<string, never>)
+        : {})
   > {
     this.#objects.push([id, obj]);
     return this as any;
@@ -192,7 +192,7 @@ export class CustomFormEx<T extends { [id: string]: CustomFormObject } = {}> {
     id: TId,
     obj: TObj
   ): CustomFormEx<
-    T & (TId extends string ? { [k in TId]: TObj } : Record<string, never>)
+    T & (TId extends string ? { [k in TId]: TObj } : {})
   > {
     this.#objects.unshift([id, obj]);
     return this as any;
@@ -204,7 +204,7 @@ export class CustomFormEx<T extends { [id: string]: CustomFormObject } = {}> {
     id: TId,
     obj: TObj
   ): CustomFormEx<
-    T & (TId extends string ? { [k in TId]: TObj } : Record<string, never>)
+    T & (TId extends string ? { [k in TId]: TObj } : {})
   > {
     this.#objects.splice(index, 0, [id, obj]);
     return this as any;
