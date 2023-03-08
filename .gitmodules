@@ -1,0 +1,91 @@
+[submodule "Airdrop"]
+    path = Airdrop
+    url = https://github.com/lgc-LLSEDev/Airdrop
+
+[submodule "BlackBEQuery"]
+    path = BlackBEQuery
+    url = https://github.com/lgc-LLSEDev/BlackBEQuery
+
+[submodule "CustomDeathMsg"]
+    path = CustomDeathMsg
+    url = https://github.com/lgc-LLSEDev/CustomDeathMsg
+
+[submodule "DailyFortune"]
+    path = DailyFortune
+    url = https://github.com/lgc-LLSEDev/DailyFortune
+
+[submodule "DeathQuery"]
+    path = DeathQuery
+    url = https://github.com/lgc-LLSEDev/DeathQuery
+
+[submodule "DiskUsageStop"]
+    path = DiskUsageStop
+    url = https://github.com/lgc-LLSEDev/DiskUsageStop
+
+[submodule "DroppableDeepSlate"]
+    path = DroppableDeepSlate
+    url = https://github.com/lgc-LLSEDev/DroppableDeepSlate
+
+[submodule "DroppableDeepSlate"]
+    path = DroppableDeepSlate
+    url = https://github.com/lgc-LLSEDev/DroppableDeepSlate
+
+[submodule "EntityCounter"]
+    path = EntityCounter
+    url = https://github.com/lgc-LLSEDev/EntityCounter
+
+[submodule "EveryoneWarp"]
+    path = EveryoneWarp
+    url = https://github.com/lgc-LLSEDev/EveryoneWarp
+
+[submodule "FormAPIEx"]
+    path = FormAPIEx
+    url = https://github.com/lgc-LLSEDev/FormAPIEx
+
+[submodule "GoCQSync"]
+    path = GoCQSync
+    url = https://github.com/lgc-LLSEDev/GoCQSync
+
+[submodule "ItemHitokoto"]
+    path = ItemHitokoto
+    url = https://github.com/lgc-LLSEDev/ItemHitokoto
+
+[submodule "LiteDynamicMotd"]
+    path = LiteDynamicMotd
+    url = https://github.com/lgc-LLSEDev/LiteDynamicMotd
+
+[submodule "LLBlackBEEx"]
+    path = LLBlackBEEx
+    url = https://github.com/lgc-LLSEDev/LLBlackBEEx
+
+[submodule "LLSEKoishi"]
+    path = LLSEKoishi
+    url = https://github.com/lgc-LLSEDev/LLSEKoishi
+
+[submodule "NavigationAPI"]
+    path = NavigationAPI
+    url = https://github.com/lgc-LLSEDev/NavigationAPI
+
+[submodule "NbsPlayer"]
+    path = NbsPlayer
+    url = https://github.com/lgc-LLSEDev/NbsPlayer
+
+[submodule "Repeat"]
+    path = Repeat
+    url = https://github.com/lgc-LLSEDev/Repeat
+
+[submodule "TitleShout"]
+    path = TitleShout
+    url = https://github.com/lgc-LLSEDev/TitleShout
+
+[submodule "SimpleTransferCmd"]
+    path = SimpleTransferCmd
+    url = https://github.com/lgc-LLSEDev/SimpleTransferCmd
+
+[submodule "StuSign"]
+    path = StuSign
+    url = https://github.com/lgc-LLSEDev/StuSign
+
+[submodule "YetAnotherCustomGetMap"]
+    path = YetAnotherCustomGetMap
+    url = https://github.com/lgc-LLSEDev/YetAnotherCustomGetMap
