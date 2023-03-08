@@ -4,7 +4,7 @@ import json from '@rollup/plugin-json';
 // import resolve from '@rollup/plugin-node-resolve';
 // import cjs from '@rollup/plugin-commonjs';
 // import terser from '@rollup/plugin-terser';
-import ignore from 'rollup-plugin-ignore';
+// import ignore from 'rollup-plugin-ignore';
 
 export default {
   input: 'src/index.ts',
@@ -14,5 +14,5 @@ export default {
     inlineDynamicImports: true,
     // sourcemap: true,
   },
-  plugins: [ignore([['../../yoyorobot/llseapi.js']]), json(), typescript()],
+  plugins: [json(), typescript()],
 };
