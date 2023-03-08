@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "pack": "node ./#tools/pack-tth.js"
+    "pack": "node ./#tools/pack-tth.js",
+    "meta": "node ./#tools/tooth-to-registry.js"
   },
   "repository": {
     "type": "git",
