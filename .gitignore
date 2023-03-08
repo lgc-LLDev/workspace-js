@@ -10,3 +10,4 @@ test.*
 /yoyorobot/
 *.min.*
 pnpm-lock.yaml
+**/tmp/**
