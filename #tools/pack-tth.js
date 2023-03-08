@@ -36,7 +36,7 @@ async function zip(tthDirName) {
 
 async function main() {
   if (existsSync(tmpDir)) {
-    await rmdir(tmpDir);
+    await rmdir(tmpDir, { recursive: true });
   }
   await mkdir(tmpDir);
 
