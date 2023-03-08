@@ -11,6 +11,8 @@
 
 ## 开发
 
+### 克隆 & 更新
+
 可以使用以下命令来克隆本工作区进行插件开发
 
 ```bash
@@ -21,6 +23,36 @@ git clone --recurse-submodules --depth=1 https://github.com/lgc-LLSEDev/workspac
 
 ```bash
 git submodule update --remote
+```
+
+### 安装工作区依赖
+
+本人强烈推荐使用 `pnpm` 管理项目依赖，如果你没有安装，可以使用下面的命令来安装
+
+```bash
+npm i pnpm -g
+```
+
+然后可以使用以下命令来安装工作区依赖
+
+```bash
+pnpm i
+```
+
+如果你要工作区内编辑 NodeJS 项目，你需要进入项目文件夹，然后安装该项目对应的依赖，命令同上
+
+### 编译
+
+如果工作区内有项目使用 TypeScript 编写，通常可以进入项目文件夹，然后执行下面的命令来编译
+
+```bash
+pnpm build
+```
+
+如果需要监听项目改动并实时编译，通常可以使用以下命令
+
+```bash
+pnpm watch
 ```
 
 ## 联系我
