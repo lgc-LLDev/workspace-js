@@ -89,3 +89,7 @@
 [submodule "YetAnotherCustomGetMap"]
     path = YetAnotherCustomGetMap
     url = https://github.com/lgc-LLSEDev/YetAnotherCustomGetMap
+
+[submodule "readme"]
+    path = readme
+    url = https://github.com/lgc-LLSEDev/readme
