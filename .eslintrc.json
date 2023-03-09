@@ -34,6 +34,14 @@
     "@typescript-eslint/triple-slash-reference": "off",
     "camelcase": "off",
     "import/extensions": "off",
+    "import/no-extraneous-dependencies": [
+      "error",
+      {
+        "devDependencies": false,
+        "optionalDependencies": false,
+        "peerDependencies": false
+      }
+    ],
     "import/no-named-default": "off",
     "import/order": "off",
     "import/prefer-default-export": "off",
@@ -51,12 +59,8 @@
       "@typescript-eslint/parser": [".ts"]
     },
     "import/resolver": {
-      "node": {
-        "extensions": [".js", ".jsx", ".ts", ".tsx"]
-      },
-      "typescript": {
-        "project": []
-      }
+      "typescript": true,
+      "node": true
     }
   }
 }
