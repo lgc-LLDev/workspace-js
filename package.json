@@ -4,7 +4,8 @@
   "description": "",
   "scripts": {
     "pack": "node ./#tools/pack-tth.js",
-    "meta": "node ./#tools/tooth-to-registry.js"
+    "meta": "node ./#tools/tooth-to-registry.js",
+    "commit": "node ./#tools/commit-push-all.js"
   },
   "repository": {
     "type": "git",
