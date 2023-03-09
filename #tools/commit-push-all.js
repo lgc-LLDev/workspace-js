@@ -10,9 +10,7 @@ const workDir = resolve(join(__dirname, '..'));
 
 function awaitProc(proc) {
   return new Promise((resv) => {
-    proc.on('close', (code) => {
-      resv(code);
-    });
+    proc.on('close', resv);
   });
 }
 
