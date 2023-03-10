@@ -1,3 +1,7 @@
+[submodule "HelperLib"]
+    path = HelperLib
+    url = https://github.com/LiteLScript-Dev/HelperLib
+
 [submodule "Airdrop"]
     path = Airdrop
     url = https://github.com/lgc-LLSEDev/Airdrop
