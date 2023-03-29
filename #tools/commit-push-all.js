@@ -55,7 +55,7 @@ async function main() {
   }
 
   console.log('Updating Workspace');
-  await commit('.', 'update workspace');
+  await commit('.', `update workspace (${msg})`);
 }
 
 main().catch(console.error);
