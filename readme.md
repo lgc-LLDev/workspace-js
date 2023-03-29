@@ -3,7 +3,17 @@
 # Workspace
 
 [![wakatime](https://wakatime.com/badge/user/b61b0f9a-f40b-4c82-bc51-0a75c67bfccf/project/d13550ef-4897-4e11-a57c-f45b2c6511e4.svg)](https://wakatime.com/badge/user/b61b0f9a-f40b-4c82-bc51-0a75c67bfccf/project/d13550ef-4897-4e11-a57c-f45b2c6511e4)
-[![CodeFactor](https://www.codefactor.io/repository/github/lgc-llsedev/workspace/badge)](https://www.codefactor.io/repository/github/lgc-llsedev/workspace)
+_（由于本仓库已拆分，这里展示的只有拆分前的时间统计）_
+
+<details open>
+  <summary>各仓库时间统计</summary>
+
+- LLBlackBEEx [![wakatime](https://wakatime.com/badge/user/b61b0f9a-f40b-4c82-bc51-0a75c67bfccf/project/ece1db86-a0a4-4c8b-b5d9-8317b3ac21c3.svg)](https://wakatime.com/badge/user/b61b0f9a-f40b-4c82-bc51-0a75c67bfccf/project/ece1db86-a0a4-4c8b-b5d9-8317b3ac21c3)
+- 剩下的懒得放了
+
+</details>
+
+<!-- [![CodeFactor](https://www.codefactor.io/repository/github/lgc-llsedev/workspace/badge)](https://www.codefactor.io/repository/github/lgc-llsedev/workspace) -->
 
 ## 简介
 
