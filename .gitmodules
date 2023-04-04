@@ -38,6 +38,10 @@
     path = EntityCounter
     url = https://github.com/lgc-LLSEDev/EntityCounter
 
+[submodule "Entrusts"]
+    path = Entrusts
+    url = https://github.com/lgc-LLSEDev/Entrusts
+
 [submodule "EveryoneWarp"]
     path = EveryoneWarp
     url = https://github.com/lgc-LLSEDev/EveryoneWarp
