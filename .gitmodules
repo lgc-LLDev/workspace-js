@@ -1,103 +1,129 @@
 [submodule "HelperLib"]
     path = HelperLib
+    branch = dev
     url = https://github.com/LiteLScript-Dev/HelperLib
 
 [submodule "Airdrop"]
     path = Airdrop
+    branch = master
     url = https://github.com/lgc-LLSEDev/Airdrop
 
 [submodule "BlackBEQuery"]
     path = BlackBEQuery
+    branch = master
     url = https://github.com/lgc-LLSEDev/BlackBEQuery
 
 [submodule "CustomDeathMsg"]
     path = CustomDeathMsg
+    branch = master
     url = https://github.com/lgc-LLSEDev/CustomDeathMsg
 
 [submodule "DailyFortune"]
     path = DailyFortune
+    branch = master
     url = https://github.com/lgc-LLSEDev/DailyFortune
 
 [submodule "DeathQuery"]
     path = DeathQuery
+    branch = master
     url = https://github.com/lgc-LLSEDev/DeathQuery
 
 [submodule "DiskUsageStop"]
     path = DiskUsageStop
+    branch = master
     url = https://github.com/lgc-LLSEDev/DiskUsageStop
 
 [submodule "DroppableDeepSlate"]
     path = DroppableDeepSlate
+    branch = master
     url = https://github.com/lgc-LLSEDev/DroppableDeepSlate
 
 [submodule "DroppableDeepSlate"]
     path = DroppableDeepSlate
+    branch = master
     url = https://github.com/lgc-LLSEDev/DroppableDeepSlate
 
 [submodule "EntityCounter"]
     path = EntityCounter
+    branch = master
     url = https://github.com/lgc-LLSEDev/EntityCounter
 
 [submodule "Entrusts"]
     path = Entrusts
+    branch = master
     url = https://github.com/lgc-LLSEDev/Entrusts
 
 [submodule "EveryoneWarp"]
     path = EveryoneWarp
+    branch = master
     url = https://github.com/lgc-LLSEDev/EveryoneWarp
 
 [submodule "FormAPIEx"]
     path = FormAPIEx
+    branch = master
     url = https://github.com/lgc-LLSEDev/FormAPIEx
 
 [submodule "GoCQSync"]
     path = GoCQSync
+    branch = master
     url = https://github.com/lgc-LLSEDev/GoCQSync
 
 [submodule "ItemHitokoto"]
     path = ItemHitokoto
+    branch = master
     url = https://github.com/lgc-LLSEDev/ItemHitokoto
 
 [submodule "LiteDynamicMotd"]
     path = LiteDynamicMotd
+    branch = master
     url = https://github.com/lgc-LLSEDev/LiteDynamicMotd
 
 [submodule "LLBlackBEEx"]
     path = LLBlackBEEx
+    branch = master
     url = https://github.com/lgc-LLSEDev/LLBlackBEEx
 
 [submodule "LLSEKoishi"]
     path = LLSEKoishi
+    branch = master
     url = https://github.com/lgc-LLSEDev/LLSEKoishi
 
 [submodule "NavigationAPI"]
     path = NavigationAPI
+    branch = master
     url = https://github.com/lgc-LLSEDev/NavigationAPI
 
 [submodule "NbsPlayer"]
     path = NbsPlayer
+    branch = master
     url = https://github.com/lgc-LLSEDev/NbsPlayer
 
 [submodule "Repeat"]
     path = Repeat
+    branch = master
     url = https://github.com/lgc-LLSEDev/Repeat
 
 [submodule "TitleShout"]
     path = TitleShout
+    branch = master
     url = https://github.com/lgc-LLSEDev/TitleShout
 
 [submodule "SimpleTransferCmd"]
     path = SimpleTransferCmd
+    branch = master
     url = https://github.com/lgc-LLSEDev/SimpleTransferCmd
 
 [submodule "StuSign"]
     path = StuSign
+    branch = master
     url = https://github.com/lgc-LLSEDev/StuSign
 
 [submodule "YetAnotherCustomGetMap"]
     path = YetAnotherCustomGetMap
+    branch = master
     url = https://github.com/lgc-LLSEDev/YetAnotherCustomGetMap
 
 [submodule "readme"]
     path = readme
+    branch = main
     url = https://github.com/lgc-LLSEDev/readme
