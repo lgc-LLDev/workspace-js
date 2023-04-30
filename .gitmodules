@@ -98,6 +98,11 @@
     branch = master
     url = https://github.com/lgc-LLSEDev/NbsPlayer
 
+[submodule "PlayerExp"]
+    path = PlayerExp
+    branch = master
+    url = https://github.com/lgc-LLSEDev/PlayerExp
+
 [submodule "Repeat"]
     path = Repeat
     branch = master
