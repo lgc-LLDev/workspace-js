@@ -83,11 +83,6 @@
     branch = master
     url = https://github.com/lgc-LLSEDev/LLBlackBEEx
 
-[submodule "LLSEKoishi"]
-    path = LLSEKoishi
-    branch = master
-    url = https://github.com/lgc-LLSEDev/LLSEKoishi
-
 [submodule "NavigationAPI"]
     path = NavigationAPI
     branch = master

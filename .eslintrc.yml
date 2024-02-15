@@ -1,0 +1,49 @@
+env:
+  commonjs: true
+  es2021: true
+  node: true
+
+extends:
+  - airbnb-base
+  - airbnb-typescript/base
+  - prettier
+  - plugin:@typescript-eslint/recommended
+
+overrides: []
+
+parser: '@typescript-eslint/parser'
+
+parserOptions:
+  ecmaVersion: latest
+  project:
+    - './**/tsconfig.json'
+
+rules:
+  camelcase: 'off'
+  global-require: 'off'
+  max-classes-per-file: 'off'
+  # no-bitwise: "off"
+  no-console: 'off'
+  no-continue: 'off'
+  no-param-reassign: 'off'
+  no-restricted-syntax: 'off'
+  no-underscore-dangle: 'off'
+
+  import/extensions: 'off'
+  import/no-named-default: 'off'
+  import/no-extraneous-dependencies: 'off'
+  import/prefer-default-export: 'off'
+
+  '@typescript-eslint/ban-types':
+    - error
+    - extendDefaults: true
+      types:
+        '{}': false
+  '@typescript-eslint/no-empty-function': 'off'
+  '@typescript-eslint/no-explicit-any': 'off'
+  '@typescript-eslint/no-non-null-assertion': 'off'
+  '@typescript-eslint/no-redeclare': 'off'
+  '@typescript-eslint/no-var-requires': 'off'
+  '@typescript-eslint/triple-slash-reference': 'off'
+  '@typescript-eslint/naming-convention': 'off'
+  '@typescript-eslint/no-namespace': 'off'
