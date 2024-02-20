@@ -1,2 +1,4 @@
 packages:
   - '*'
+  - 'NbsPlayer/nbs-play/packages/*'
+  - 'NbsPlayer/nbs-player'
