@@ -8,11 +8,6 @@
     branch = master
     url = https://github.com/lgc-LLSEDev/Airdrop
 
-[submodule "BlackBEQuery"]
-    path = BlackBEQuery
-    branch = master
-    url = https://github.com/lgc-LLSEDev/BlackBEQuery
-
 [submodule "CustomDeathMsg"]
     path = CustomDeathMsg
     branch = master
@@ -27,11 +22,6 @@
     path = DeathQuery
     branch = master
     url = https://github.com/lgc-LLSEDev/DeathQuery
-
-[submodule "DiskUsageStop"]
-    path = DiskUsageStop
-    branch = master
-    url = https://github.com/lgc-LLSEDev/DiskUsageStop
 
 [submodule "DroppableDeepSlate"]
     path = DroppableDeepSlate
@@ -62,11 +52,6 @@
     path = FormAPIEx
     branch = master
     url = https://github.com/lgc-LLSEDev/FormAPIEx
-
-[submodule "GoCQSync"]
-    path = GoCQSync
-    branch = master
-    url = https://github.com/lgc-LLSEDev/GoCQSync
 
 [submodule "ItemHitokoto"]
     path = ItemHitokoto
@@ -117,11 +102,6 @@
     path = StuSign
     branch = master
     url = https://github.com/lgc-LLSEDev/StuSign
-
-[submodule "YetAnotherCustomGetMap"]
-    path = YetAnotherCustomGetMap
-    branch = master
-    url = https://github.com/lgc-LLSEDev/YetAnotherCustomGetMap
 
 [submodule "readme"]
     path = readme

@@ -26,7 +26,7 @@ _（由于本仓库已拆分，这里展示的只有拆分前的时间统计）_
 可以使用以下命令来克隆本工作区进行插件开发
 
 ```bash
-git clone --depth=1 https://github.com/lgc-LLSEDev/workspace
+git clone --depth=1 https://github.com/lgc-LLDev/workspace
 git submodule update --init --recursive
 ```
 
