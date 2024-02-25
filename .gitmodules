@@ -107,3 +107,6 @@
     path = readme
     branch = main
     url = https://github.com/lgc-LLSEDev/readme
+[submodule "LLSatori"]
+	path = LLSatori
+	url = https://github.com/lgc-LLDev/LLSatori
