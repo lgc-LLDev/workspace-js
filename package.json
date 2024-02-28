@@ -3,10 +3,16 @@
   "private": true,
   "version": "1.0.0",
   "description": "",
+  "workspaces": [
+    "*",
+    "NbsPlayer/nbs-play/packages/*",
+    "NbsPlayer/nbs-player"
+  ],
   "scripts": {
     "pack": "node ./#tools/pack-tth.js",
     "meta": "node ./#tools/tooth-to-registry.js",
-    "commit": "node ./#tools/commit-push-all.js"
+    "commit": "node ./#tools/commit-push-all.js",
+    "dep": "yakumo upgrade"
   },
   "repository": {
     "type": "git",
@@ -19,28 +25,22 @@
   },
   "homepage": "https://github.com/lgc2333/LLSEPlugins#readme",
   "devDependencies": {
-    "@rollup/plugin-json": "^5.0.1",
-    "@rollup/plugin-terser": "^0.1.0",
-    "@rollup/plugin-typescript": "^9.0.2",
-    "@types/node": "^18.11.7",
-    "@types/os-utils": "^0.0.1",
-    "@typescript-eslint/eslint-plugin": "^5.41.0",
-    "@typescript-eslint/parser": "^5.52.0",
-    "eslint-import-resolver-node": "^0.3.7",
-    "eslint-import-resolver-typescript": "^3.5.3",
-    "eslint-plugin-react": "^7.32.2",
+    "@typescript-eslint/eslint-plugin": "^7.1.0",
+    "@typescript-eslint/parser": "^7.1.0",
+    "eslint-import-resolver-node": "^0.3.9",
+    "eslint-import-resolver-typescript": "^3.6.1",
+    "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^4.6.0",
-    "rollup": "^3.4.0",
-    "eslint": "^8.56.0",
+    "eslint": "^8.57.0",
     "eslint-config-airbnb": "^19.0.4",
     "eslint-config-airbnb-typescript": "^17.1.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-jsx-a11y": "^6.8.0",
-    "eslint-plugin-n": "^16.5.0",
+    "eslint-plugin-n": "^16.6.2",
     "eslint-plugin-promise": "^6.1.1",
     "typescript": "^5.3.3",
-    "rimraf": "^5.0.5",
-    "@rollup/plugin-node-resolve": "^15.2.3"
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "yakumo": "^1.0.0-beta.9"
   }
 }

@@ -107,6 +107,6 @@
     path = readme
     branch = main
     url = https://github.com/lgc-LLSEDev/readme
-[submodule "LLSatori"]
-	path = LLSatori
-	url = https://github.com/lgc-LLDev/LLSatori
+[submodule "LeviOneBot"]
+	path = LeviOneBot
+	url = https://github.com/lgc-LLDev/LeviOneBot
