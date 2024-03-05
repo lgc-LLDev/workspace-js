@@ -3,11 +3,6 @@
   "private": true,
   "version": "1.0.0",
   "description": "",
-  "workspaces": [
-    "*",
-    "NbsPlayer/nbs-play/packages/*",
-    "NbsPlayer/nbs-player"
-  ],
   "scripts": {
     "pack": "node ./#tools/pack-tth.js",
     "meta": "node ./#tools/tooth-to-registry.js",
