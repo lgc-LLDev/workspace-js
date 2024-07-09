@@ -13,8 +13,6 @@ _（由于本仓库已拆分，这里展示的只有拆分前的时间统计）_
 
 </details>
 
-<!-- [![CodeFactor](https://www.codefactor.io/repository/github/lgc-llsedev/workspace/badge)](https://www.codefactor.io/repository/github/lgc-llsedev/workspace) -->
-
 ## 简介
 
 这里是我开发 LLSE 插件的工作区
