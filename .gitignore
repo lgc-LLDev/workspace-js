@@ -4,7 +4,7 @@ dist/
 package-lock.json
 # /package.json
 .vscode/
-private/
+# private/
 test.*
 *.llplugin
 /yoyorobot/
