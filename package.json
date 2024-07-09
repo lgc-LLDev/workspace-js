@@ -3,8 +3,11 @@
   "private": true,
   "version": "1.0.0",
   "description": "",
+  "workspaces": [
+    "*",
+    "private/*"
+  ],
   "scripts": {
-    "dep": "yakumo upgrade",
     "format": "prettier -cw .",
     "lint": "eslint \"**/*.{js,ts}\""
   },
@@ -20,14 +23,10 @@
   "homepage": "https://github.com/lgc2333/LLSEPlugins#readme",
   "devDependencies": {
     "@cordisjs/eslint-config": "^1.1.1",
-    "@rollup/plugin-node-resolve": "^15.2.3",
     "@types/node": "^20.14.10",
-    "@types/react": "^18.3.3",
     "@typescript-eslint/eslint-plugin": "^7.16.0",
     "@typescript-eslint/parser": "^7.16.0",
-    "cordis": "^3.17.4",
-    "esbuild": "^0.18.20",
-    "esbuild-register": "npm:@shigma/esbuild-register@^1.1.1",
+    "dumble": "^0.2.0",
     "eslint": "^8.57.0",
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-jsx-a11y": "^6.9.0",
@@ -35,12 +34,6 @@
     "eslint-plugin-promise": "^6.4.0",
     "eslint-plugin-react": "^7.34.3",
     "eslint-plugin-react-hooks": "^4.6.2",
-    "tsx": "^4.16.2",
-    "typescript": "^5.5.3",
-    "yakumo": "1.0.0-beta.16",
-    "yakumo-esbuild": "1.0.0-beta.6",
-    "yakumo-esbuild-yaml": "^0.3.1",
-    "yakumo-tsc": "1.0.0-beta.4",
-    "yakumo-version": "^0.3.4"
+    "typescript": "^5.5.3"
   }
 }

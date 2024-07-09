@@ -28,3 +28,6 @@ rules:
         - blankLine: always
           prev: '*'
           next: method
+  generator-star-spacing:
+    - error
+    - before
