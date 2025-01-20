@@ -1,7 +1,0 @@
-{
-  "extends": "./tsconfig.template.json",
-  "compilerOptions": {
-    "moduleResolution": "bundler",
-    "emitDeclarationOnly": true // use esbuild
-  }
-}

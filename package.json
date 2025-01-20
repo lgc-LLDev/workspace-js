@@ -1,29 +1,22 @@
 {
   "name": "lse-plugins",
+  "packageManager": "yarn@4.6.0",
   "private": true,
-  "version": "1.0.0",
-  "description": "",
+  "version": "0",
   "workspaces": [
-    "*",
+    "packages/*",
+    "external/*",
     "private/*"
   ],
   "scripts": {
     "format": "prettier -cw .",
     "lint": "eslint \"**/*.{js,ts}\""
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/lgc2333/LLSEPlugins.git"
-  },
   "author": "student_2333 <lgc2333@126.com>",
   "license": "Apache-2.0",
-  "bugs": {
-    "url": "https://github.com/lgc2333/LLSEPlugins/issues"
-  },
-  "homepage": "https://github.com/lgc2333/LLSEPlugins#readme",
   "devDependencies": {
     "@cordisjs/eslint-config": "^1.1.1",
-    "@types/node": "^20.14.10",
+    "@types/node": "^22.10.7",
     "@typescript-eslint/eslint-plugin": "^7.16.0",
     "@typescript-eslint/parser": "^7.16.0",
     "dumble": "^0.2.0",
