@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 
-import { readToothMeta } from './utils'
+import { joinPluginPath, readToothMeta } from './utils'
 
 const args = process.argv.slice(2)
 const pluginName = args[0]
@@ -15,7 +15,10 @@ fs.mkdirSync(tmpFolderPath)
 toothMeta.files.place.forEach(({ src }) => {
   const folder = path.dirname(src)
   fs.mkdirSync(path.join(tmpFolderPath, folder), { recursive: true })
-  fs.copyFileSync(src, path.join(tmpFolderPath, src))
+  fs.copyFileSync(joinPluginPath(pluginName, src), path.join(tmpFolderPath, src))
 })
 
-fs.copyFileSync('tooth.json', path.join(tmpFolderPath, 'tooth.json'))
+fs.copyFileSync(
+  joinPluginPath(pluginName, 'tooth.json'),
+  path.join(tmpFolderPath, 'tooth.json'),
+)

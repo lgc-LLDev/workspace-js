@@ -15,9 +15,13 @@ export interface ToothMeta {
   files: ToothMetaFiles
 }
 
+export function joinPluginPath(pluginName: string, ...paths: string[]): string {
+  return path.join('plugins', pluginName, ...paths)
+}
+
 export function readToothMeta(pluginName: string): ToothMeta {
   const toothMetaJson = fs.readFileSync(
-    path.join('plugins', pluginName, 'tooth.json'),
+    joinPluginPath(pluginName, 'tooth.json'),
     'utf8',
   )
   return JSON.parse(toothMetaJson)
