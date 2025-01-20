@@ -2207,7 +2207,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"form-api-ex@workspace:plugins/FormAPIEx":
+"form-api-ex@workspace:^, form-api-ex@workspace:plugins/FormAPIEx":
   version: 0.0.0-use.local
   resolution: "form-api-ex@workspace:plugins/FormAPIEx"
   dependencies:
@@ -3301,10 +3301,9 @@ __metadata:
     dumble: "npm:^0.2.1"
     esbuild: "npm:^0.24.2"
     event-target-polyfill: "npm:^0.0.4"
+    form-api-ex: "workspace:^"
     nbs-play: "workspace:^"
     rimraf: "npm:^6.0.1"
-  peerDependencies:
-    form-api-ex: "workspace:^"
   languageName: unknown
   linkType: soft
 
