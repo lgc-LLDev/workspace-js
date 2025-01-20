@@ -7,7 +7,7 @@
     "incremental": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
-    "types": ["node"],
+    // "types": ["node"],
     "allowJs": true,
     "checkJs": true,
     "removeComments": true,

@@ -1,32 +1,35 @@
 {
-  "name": "lse-plugins",
+  "name": "workspace-js",
   "packageManager": "yarn@4.6.0",
   "private": true,
   "version": "0",
   "workspaces": [
-    "packages/*",
     "external/*",
+    "plugins/*",
     "private/*"
   ],
   "scripts": {
     "format": "prettier -cw .",
-    "lint": "eslint \"**/*.{js,ts}\""
+    "lint": "eslint \"**/*.{js,ts}\"",
+    "build": "yarn workspaces foreach -Wpt run build",
+    "clean": "yarn workspaces foreach -Wpt run clean"
   },
   "author": "student_2333 <lgc2333@126.com>",
   "license": "Apache-2.0",
   "devDependencies": {
     "@cordisjs/eslint-config": "^1.1.1",
+    "@types/levi-lamina-lse": "workspace:^",
     "@types/node": "^22.10.7",
-    "@typescript-eslint/eslint-plugin": "^7.16.0",
-    "@typescript-eslint/parser": "^7.16.0",
-    "dumble": "^0.2.0",
-    "eslint": "^8.57.0",
-    "eslint-plugin-import": "^2.29.1",
-    "eslint-plugin-jsx-a11y": "^6.9.0",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
+    "dumble": "^0.2.1",
+    "eslint": "^8.57.1",
+    "eslint-plugin-import": "^2.31.0",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-n": "^16.6.2",
-    "eslint-plugin-promise": "^6.4.0",
-    "eslint-plugin-react": "^7.34.3",
+    "eslint-plugin-promise": "^6.6.0",
+    "eslint-plugin-react": "^7.37.4",
     "eslint-plugin-react-hooks": "^4.6.2",
-    "typescript": "^5.5.3"
+    "typescript": "^5.7.3"
   }
 }
