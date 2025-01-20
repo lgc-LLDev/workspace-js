@@ -14,7 +14,7 @@
     "build": "yarn workspaces foreach -Wpt run build",
     "clean": "yarn workspaces foreach -Wpt run clean"
   },
-  "author": "student_2333 <lgc2333@126.com>",
+  "author": "LgCookie <lgc2333@126.com>",
   "license": "Apache-2.0",
   "devDependencies": {
     "@cordisjs/eslint-config": "^1.1.1",
