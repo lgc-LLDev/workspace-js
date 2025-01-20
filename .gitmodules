@@ -1,0 +1,17 @@
+[submodule "external/HelperLib"]
+	path = external/HelperLib
+	url = https://github.com/LiteLDev/HelperLib
+[submodule "external/nbs-play"]
+	path = external/nbs-play
+	url = https://github.com/lgc2333/nbs-play
+
+[submodule "others/readme"]
+	path = others/readme
+	url = https://github.com/lgc-LLDev/readme
+
+[submodule "plugins/FormAPIEx"]
+	path = plugins/FormAPIEx
+	url = https://github.com/lgc-LLDev/FormAPIEx
+[submodule "plugins/NBSPlayer"]
+	path = plugins/NBSPlayer
+	url = https://github.com/lgc-LLDev/NBSPlayer
