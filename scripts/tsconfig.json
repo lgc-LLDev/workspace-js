@@ -1,0 +1,8 @@
+{
+  "extends": "../tsconfig.base",
+  "include": ["."],
+  "compilerOptions": {
+    "noEmit": true,
+    "types": ["node"]
+  }
+}
