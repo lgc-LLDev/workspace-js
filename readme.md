@@ -2,20 +2,7 @@
 
 # Workspace
 
-[![wakatime](https://wakatime.com/badge/user/b61b0f9a-f40b-4c82-bc51-0a75c67bfccf/project/d13550ef-4897-4e11-a57c-f45b2c6511e4.svg)](https://wakatime.com/badge/user/b61b0f9a-f40b-4c82-bc51-0a75c67bfccf/project/d13550ef-4897-4e11-a57c-f45b2c6511e4)
-_（由于本仓库已拆分，这里展示的只有拆分前的时间统计）_
-
-<details open>
-  <summary>各仓库时间统计</summary>
-
-- LLBlackBEEx [![wakatime](https://wakatime.com/badge/user/b61b0f9a-f40b-4c82-bc51-0a75c67bfccf/project/ece1db86-a0a4-4c8b-b5d9-8317b3ac21c3.svg)](https://wakatime.com/badge/user/b61b0f9a-f40b-4c82-bc51-0a75c67bfccf/project/ece1db86-a0a4-4c8b-b5d9-8317b3ac21c3)
-- 剩下的懒得放了
-
-</details>
-
-## 简介
-
-这里是我开发 LLSE 插件的工作区
+这里是开发 LSE 插件的工作区
 
 ## 开发
 
@@ -24,8 +11,7 @@ _（由于本仓库已拆分，这里展示的只有拆分前的时间统计）_
 可以使用以下命令来克隆本工作区进行插件开发
 
 ```bash
-git clone --depth=1 https://github.com/lgc-LLDev/workspace
-git submodule update --init --recursive
+git clone --depth=1 --recurse-submodules https://github.com/lgc-LLDev/workspace
 ```
 
 可以使用下面的命令更新所有子模块
@@ -36,32 +22,24 @@ git submodule update --remote
 
 ### 安装工作区依赖
 
-本人强烈推荐使用 `pnpm` 管理项目依赖，如果你没有安装，可以使用下面的命令来安装
+本工作区的包管理器选用了 Yarn Berry，推荐启用 Corepack 来使用，如没有请执行下方命令
 
 ```bash
-npm i pnpm -g
+corepack enable
 ```
 
 然后可以使用以下命令来安装工作区依赖
 
 ```bash
-pnpm i
+yarn
 ```
-
-如果你要工作区内编辑 NodeJS 项目，你需要进入项目文件夹，然后安装该项目对应的依赖，命令同上
 
 ### 编译
 
-如果工作区内有项目使用 TypeScript 编写，通常可以进入项目文件夹，然后执行下面的命令来编译
+执行下面的命令来编译
 
 ```bash
-pnpm build
-```
-
-如果需要监听项目改动并实时编译，通常可以使用以下命令
-
-```bash
-pnpm watch
+yarn build
 ```
 
 ## 联系我
@@ -72,12 +50,6 @@ QQ：3076823485
 
 ## 赞助
 
+**[赞助我](https://blog.lgc2333.top/donate)**
+
 感谢大家的赞助！你们的赞助将是我继续创作的动力！
-
-- [爱发电](https://afdian.net/@lgc2333)
-- <details>
-    <summary>赞助二维码（点击展开）</summary>
-
-  ![讨饭](https://raw.githubusercontent.com/lgc2333/ShigureBotMenu/master/src/imgs/sponsor.png)
-
-  </details>
